@@ -84,7 +84,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       frame.current.replaceChildren(el);
       player.current = new YT.Player(el, {
         videoId,
-        playerVars: { autoplay: 1, playsinline: 1, rel: 0 },
+        // 表示はなるべく減らす。操作は Janify の帯でするので、YouTube の操作バーは出さない。
+        // 上部の題名と「YouTube で見る」のロゴは、パラメータでは消せない（消そうとして上に重ねるのは規約違反）
+        playerVars: {
+          autoplay: 1,
+          playsinline: 1,
+          rel: 0, // 一時停止中の関連動画を、同じチャンネルのものに絞る
+          controls: 0,
+          iv_load_policy: 3, // 動画の注釈を出さない
+          disablekb: 1, // プレイヤー内のキー操作で帯の表示とずれないようにする
+        },
         events: {
           onReady: (e) => e.target.playVideo(),
           onStateChange: ({ data }) => {
