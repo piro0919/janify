@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { Logo, MobileTabs, Sidebar } from '@/components/nav';
 import { PlayerProvider } from '@/components/player/player-provider';
+import { Progress } from '@/components/progress';
 import { SearchBox } from '@/components/search-box';
 import { themeScript } from '@/components/theme/theme-script';
 import { ThemeWatcher } from '@/components/theme/theme-watcher';
@@ -49,45 +50,47 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-full font-sans">
-        <PlayerProvider>
-          <div className="flex min-h-dvh">
-            <Sidebar />
-            <div className="flex min-w-0 flex-1 flex-col">
-              <header className="sticky top-0 z-20 flex items-center gap-4 bg-background/90 px-4 py-3 backdrop-blur sm:px-8">
-                <div className="md:hidden">
-                  <Logo />
-                </div>
-                {/* 検索欄は URL の語を読むので、静的に書き出す画面では Suspense で包む */}
-                <Suspense fallback={<div className="h-10 w-full max-w-xl" />}>
-                  <SearchBox />
-                </Suspense>
-              </header>
-              <main className="flex-1 px-4 pb-12 sm:px-8">{children}</main>
-              <footer className="page-bottom flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line px-4 pt-6 text-sm text-muted sm:px-8">
-                <Link href="/terms" className="hover:text-foreground">
-                  利用規約
-                </Link>
-                <Link href="/privacy" className="hover:text-foreground">
-                  プライバシーポリシー
-                </Link>
-                {/* パソコンでは左のメニューにもある。スマホのタブには入れず、ここから行く */}
-                <Link href="/settings" className="hover:text-foreground">
-                  設定
-                </Link>
-                <a
-                  href={CONTACT_FORM_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-foreground"
-                >
-                  お問い合わせ
-                </a>
-                <span className="ml-auto">© {OPERATOR}</span>
-              </footer>
+        <Progress>
+          <PlayerProvider>
+            <div className="flex min-h-dvh">
+              <Sidebar />
+              <div className="flex min-w-0 flex-1 flex-col">
+                <header className="sticky top-0 z-20 flex items-center gap-4 bg-background/90 px-4 py-3 backdrop-blur sm:px-8">
+                  <div className="md:hidden">
+                    <Logo />
+                  </div>
+                  {/* 検索欄は URL の語を読むので、静的に書き出す画面では Suspense で包む */}
+                  <Suspense fallback={<div className="h-10 w-full max-w-xl" />}>
+                    <SearchBox />
+                  </Suspense>
+                </header>
+                <main className="flex-1 px-4 pb-12 sm:px-8">{children}</main>
+                <footer className="page-bottom flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line px-4 pt-6 text-sm text-muted sm:px-8">
+                  <Link href="/terms" className="hover:text-foreground">
+                    利用規約
+                  </Link>
+                  <Link href="/privacy" className="hover:text-foreground">
+                    プライバシーポリシー
+                  </Link>
+                  {/* パソコンでは左のメニューにもある。スマホのタブには入れず、ここから行く */}
+                  <Link href="/settings" className="hover:text-foreground">
+                    設定
+                  </Link>
+                  <a
+                    href={CONTACT_FORM_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-foreground"
+                  >
+                    お問い合わせ
+                  </a>
+                  <span className="ml-auto">© {OPERATOR}</span>
+                </footer>
+              </div>
             </div>
-          </div>
-          <MobileTabs />
-        </PlayerProvider>
+            <MobileTabs />
+          </PlayerProvider>
+        </Progress>
         <ThemeWatcher />
         <Analytics />
       </body>

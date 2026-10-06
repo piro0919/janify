@@ -78,6 +78,9 @@ def main():
     # OG 画像（src/app/opengraph-image.tsx）もこれを読む
     icon.resize((512, 512), Image.Resampling.LANCZOS).save(ROOT / "src/app/icon.png")
     icon.resize((180, 180), Image.Resampling.LANCZOS).save(ROOT / "src/app/apple-icon.png")
+    # ホーム画面に置いたとき（PWA）のアイコン。src/app/manifest.ts が読む
+    for size in (192, 512):
+        icon.resize((size, size), Image.Resampling.LANCZOS).save(ROOT / f"public/icon-{size}x{size}.png")
     # Next.js は中身が RGBA の PNG でない .ico を読めない
     icon.convert("RGBA").save(ROOT / "src/app/favicon.ico", sizes=[(16, 16), (32, 32), (48, 48)])
 
