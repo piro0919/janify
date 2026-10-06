@@ -41,11 +41,41 @@ type PlayerContext = {
   close: () => void;
   seek: (seconds: number) => void;
   time: PlaybackTime;
+  /** 音量（0〜100）と消音。このブラウザに残し、次に開いたときもその音量で始める */
+  volume: number;
+  muted: boolean;
+  setVolume: (volume: number) => void;
+  toggleMute: () => void;
   /** アルバムの画面で、プレイヤーを大きく置く場所 */
   setSlot: (el: HTMLElement | null) => void;
 };
 
 const Context = createContext<PlayerContext | null>(null);
+
+const VOLUME_KEY = 'janify-volume';
+
+/** 残しておいた音量と消音。読めなければ 100 で消音なし */
+function savedVolume(): { volume: number; muted: boolean } {
+  try {
+    const saved = JSON.parse(localStorage.getItem(VOLUME_KEY) ?? 'null') as {
+      volume?: unknown;
+      muted?: unknown;
+    } | null;
+    const volume =
+      typeof saved?.volume === 'number' ? Math.min(100, Math.max(0, saved.volume)) : 100;
+    return { volume, muted: saved?.muted === true };
+  } catch {
+    return { volume: 100, muted: false };
+  }
+}
+
+function saveVolume(volume: number, muted: boolean) {
+  try {
+    localStorage.setItem(VOLUME_KEY, JSON.stringify({ volume, muted }));
+  } catch {
+    // 保存できない窓では、開き直すと 100 に戻る
+  }
+}
 
 export function usePlayer(): PlayerContext {
   const ctx = useContext(Context);
@@ -80,6 +110,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [time, setTime] = useState<PlaybackTime>({ current: 0, duration: 0, at: 0 });
   const [slot, setSlot] = useState<HTMLElement | null>(null);
+  // 残しておいた音量は、最初に曲を流したときに読む（サーバーでは localStorage を読めず、帯も曲を流すまで出ない）
+  const [sound, setSound] = useState({ volume: 100, muted: false });
+  const soundRef = useRef<{ volume: number; muted: boolean } | null>(null);
   const [rect, setRect] = useState<Rect | null>(null);
 
   const frame = useRef<HTMLDivElement>(null);
@@ -90,6 +123,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const onEnded = useRef(() => {});
 
   const load = useCallback((items: QueueItem[], at: number) => {
+    if (!soundRef.current) {
+      soundRef.current = savedVolume();
+      setSound(soundRef.current);
+    }
     state.current = { queue: items, index: at };
     setQueue(items);
     setIndex(at);
@@ -117,7 +154,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           disablekb: 1, // プレイヤー内のキー操作で帯の表示とずれないようにする
         },
         events: {
-          onReady: (e) => e.target.playVideo(),
+          onReady: (e) => {
+            // 残しておいた音量で始める
+            const { volume, muted } = soundRef.current ?? { volume: 100, muted: false };
+            e.target.setVolume(volume);
+            if (muted) e.target.mute();
+            e.target.playVideo();
+          },
           onStateChange: ({ data }) => {
             if (data === YT.PlayerState.PLAYING) {
               setPlaying(true);
@@ -264,9 +307,29 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         setTime((t) => ({ ...t, current: seconds, at: performance.now() }));
       },
       time,
+      volume: sound.volume,
+      muted: sound.muted,
+      setVolume: (volume) => {
+        // つまみを動かしたら消音は解く
+        const next = { volume, muted: false };
+        soundRef.current = next;
+        setSound(next);
+        saveVolume(volume, false);
+        player.current?.setVolume(volume);
+        player.current?.unMute();
+      },
+      toggleMute: () => {
+        const now = soundRef.current ?? sound;
+        const next = { ...now, muted: !now.muted };
+        soundRef.current = next;
+        setSound(next);
+        saveVolume(next.volume, next.muted);
+        if (next.muted) player.current?.mute();
+        else player.current?.unMute();
+      },
       setSlot,
     }),
-    [queue, index, current, playing, loading, load, adopt, step, close, time],
+    [queue, index, current, playing, loading, load, adopt, step, close, time, sound],
   );
 
   return (

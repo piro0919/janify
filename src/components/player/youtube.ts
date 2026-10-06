@@ -6,6 +6,9 @@ export type YTPlayer = {
   seekTo(seconds: number, allowSeekAhead: boolean): void;
   getCurrentTime(): number;
   getDuration(): number;
+  setVolume(volume: number): void;
+  mute(): void;
+  unMute(): void;
   destroy(): void;
 };
 export type YTNamespace = {

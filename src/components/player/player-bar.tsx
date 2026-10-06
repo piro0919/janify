@@ -16,7 +16,21 @@ import { type PlaybackTime, usePlayer } from './player-provider';
  * 最初の1曲でもせり上がって見えるよう、曲を選ぶ前から閉じた状態で置いておく
  */
 export function PlayerBar({ item, open }: { item: QueueItem | null; open: boolean }) {
-  const { queue, index, playing, loading, toggle, step, close, seek, time } = usePlayer();
+  const {
+    queue,
+    index,
+    playing,
+    loading,
+    toggle,
+    step,
+    close,
+    seek,
+    time,
+    volume,
+    muted,
+    setVolume,
+    toggleMute,
+  } = usePlayer();
 
   return (
     <div
@@ -89,6 +103,27 @@ export function PlayerBar({ item, open }: { item: QueueItem | null; open: boolea
         ) : (
           <div className="flex-1" />
         )}
+
+        {/*
+          音量。iPhone と iPad は埋め込みの音量を Web から変えられず、本体のボタンで調節する決まりなので、
+          スマホの幅では出さない
+        */}
+        <div className="hidden items-center gap-1 md:flex">
+          <BarButton label={muted ? '消音を解除' : '消音'} onClick={toggleMute}>
+            <Icon
+              name={muted || volume === 0 ? 'volumeOff' : volume < 50 ? 'volumeLow' : 'volume'}
+            />
+          </BarButton>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={muted ? 0 : volume}
+            onChange={(e) => setVolume(Number(e.target.value))}
+            aria-label="音量"
+            className="w-24 cursor-pointer accent-accent"
+          />
+        </div>
 
         <BarButton label="プレイヤーを閉じる" onClick={close}>
           <Icon name="close" />
