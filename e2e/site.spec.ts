@@ -62,3 +62,35 @@ test('設定で明るいテーマを選ぶと切り替わり、開き直して�
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 });
+
+test('お気に入りの曲の画面で並べ替えると、その順が残り、押した曲はその画面のまま流れる', async ({
+  page,
+}) => {
+  await page.goto('/');
+  // 人気曲から3曲をお気に入りに入れる
+  const hearts = page.getByRole('button', { name: /をお気に入りに追加$/ });
+  for (let i = 0; i < 3; i++) await hearts.first().click();
+
+  await page.goto('/library/songs');
+  const titles = () => page.locator('ol li span.font-bold').allTextContents();
+  const before = await titles();
+  expect(before).toHaveLength(3);
+
+  // 3曲目のつまみを1曲目の上へドラッグする
+  const handles = page.getByRole('button', { name: /を並べ替え$/ });
+  const from = await handles.nth(2).boundingBox();
+  const to = await handles.nth(0).boundingBox();
+  if (!from || !to) throw new Error('つまみが見つからない');
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(to.x + to.width / 2, to.y + 2, { steps: 8 });
+  await page.mouse.up();
+  await expect.poll(titles).toEqual([before[2], before[0], before[1]]);
+  await page.reload();
+  await expect.poll(titles).toEqual([before[2], before[0], before[1]]);
+
+  // 2曲目を押すと、画面は移らず、大きな置き場所で流れる
+  await page.locator('ol li').nth(1).getByRole('button').nth(1).click();
+  await expect(page).toHaveURL(/\/library\/songs$/);
+  await expect(page.locator('html')).toHaveAttribute('data-player', 'slot');
+});

@@ -2,11 +2,12 @@
 
 import type { ReactNode } from 'react';
 import { COVER_GRID, CoverCard } from '@/components/cover-card';
-import { useLibrary } from '@/components/favorites/use-library';
+import Link from 'next/link';
+import { useLibraryKept } from '@/components/favorites/use-library';
 import { SongList } from '@/components/song-list';
 
 export function LibraryContent() {
-  const { ready, songs, albums, artists } = useLibrary();
+  const { ready, songs, albums, artists } = useLibraryKept();
 
   if (!ready) return <p className="pt-8 text-muted">読み込んでいます…</p>;
   if (songs.length + albums.length + artists.length === 0) {
@@ -16,8 +17,9 @@ export function LibraryContent() {
   return (
     <>
       {songs.length > 0 && (
-        <Section title="楽曲" count={songs.length}>
-          <SongList songs={songs} />
+        <Section title="楽曲" count={songs.length} href="/library/songs">
+          {/* 出し入れと並べ替えは、すべて表示の先（お気に入りの曲の画面）でする */}
+          <SongList songs={songs.slice(0, 10)} favorites={songs} hearts={false} />
         </Section>
       )}
       {albums.length > 0 && (
@@ -61,18 +63,31 @@ export function LibraryContent() {
 function Section({
   title,
   count,
+  href,
   children,
 }: {
   title: string;
   count: number;
+  /** すべて表示の行き先 */
+  href?: string;
   children: ReactNode;
 }) {
   return (
     <section className="mt-10 first:mt-6">
-      <h2 className="mb-4 text-xl font-bold sm:text-2xl">
-        {title}
-        <span className="ml-2 text-sm font-normal text-muted">{count} 件</span>
-      </h2>
+      <div className="mb-4 flex items-end gap-3">
+        <h2 className="text-xl font-bold sm:text-2xl">
+          {title}
+          <span className="ml-2 text-sm font-normal text-muted">{count} 件</span>
+        </h2>
+        {href && (
+          <Link
+            href={href}
+            className="ml-auto rounded-full border border-line px-3 py-1 text-xs font-bold text-muted transition-colors hover:bg-foreground/8 hover:text-foreground"
+          >
+            すべて表示
+          </Link>
+        )}
+      </div>
       {children}
     </section>
   );

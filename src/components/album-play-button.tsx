@@ -19,7 +19,7 @@ export function AlbumPlayButton({ first, title }: { first: QueueItem; title: str
       type="button"
       aria-label={`${title}を再生`}
       onClick={() => {
-        playQueue([first], 0);
+        playQueue([first], 0, 'pending');
         router.push(`/albums/${first.albumId}`);
       }}
       className="grid size-10 place-items-center rounded-full bg-black/70 text-white opacity-0 shadow-lg transition-[opacity,scale] duration-150 ease-out group-hover:opacity-100 hover:scale-110 focus-visible:opacity-100 active:scale-95"

@@ -18,6 +18,14 @@ import { Icon } from '../icon';
 import { PlayerBar } from './player-bar';
 import { loadYouTubeApi, type YTPlayer } from './youtube';
 
+/**
+ * いま何の並びで流しているか。
+ * - album: アルバムの曲目の順（アルバムの画面から流したとき）
+ * - favorites: お気に入りの曲の並び順（お気に入りの画面から流したとき）
+ * - pending: 曲の一覧から1曲だけ流し始め、アルバムの画面に着いたら曲目に差し替える途中
+ */
+export type PlayContext = 'album' | 'favorites' | 'pending';
+
 /** 時刻は YouTube から 0.5 秒おきに拾う。at は拾った瞬間で、その間は表示側で補って進める */
 export type PlaybackTime = { current: number; duration: number; at: number };
 
@@ -28,8 +36,9 @@ type PlayerContext = {
   playing: boolean;
   /** 曲を選んでから音が出るまで。最初の1曲は YouTube の仕組みの読み込みも待つ */
   loading: boolean;
+  context: PlayContext;
   /** 曲の一覧を順番待ちに積み、start 番目から再生する */
-  playQueue: (items: QueueItem[], start: number) => void;
+  playQueue: (items: QueueItem[], start: number, context?: PlayContext) => void;
   /**
    * 流している曲は止めずに、順番待ちだけを差し替える。曲の一覧から押したときは、まずその1曲を
    * 流し始め、アルバムの画面に着いたところでアルバムの曲目に差し替える（album-player.tsx）
@@ -106,6 +115,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [context, setContext] = useState<PlayContext>('album');
+  // 曲送り（YouTube の onStateChange から呼ばれる）でも、いまの並びの種類を引き継ぐ
+  const contextRef = useRef<PlayContext>('album');
+  useEffect(() => {
+    contextRef.current = context;
+  }, [context]);
   const [time, setTime] = useState<PlaybackTime>({ current: 0, duration: 0, at: 0 });
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   // 残しておいた音量は、最初に曲を流したときに読む（サーバーでは localStorage を読めず、帯も曲を流すまで出ない）
@@ -119,7 +134,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // 曲が終わったときの処理。load から自分自身を呼ぶことになるので、ref を通して呼ぶ
   const onEnded = useRef(() => {});
 
-  const load = useCallback((items: QueueItem[], at: number) => {
+  const load = useCallback((items: QueueItem[], at: number, ctx: PlayContext = 'album') => {
+    setContext(ctx);
     if (!soundRef.current) {
       soundRef.current = savedVolume();
       setSound(soundRef.current);
@@ -166,6 +182,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
             if (data === YT.PlayerState.PAUSED) setPlaying(false);
             if (data === YT.PlayerState.ENDED) onEnded.current();
           },
+          // 再生できない動画（削除・非公開・埋め込み不可・有料会員限定など）は、読み込み中のまま止めず、次の曲へ進む
+          onError: () => {
+            setLoading(false);
+            onEnded.current();
+          },
         },
       });
     });
@@ -175,7 +196,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     // 曲が終わったら、順番待ちの次の曲へ。最後の曲なら止まる
     onEnded.current = () => {
       const { queue: q, index: i } = state.current;
-      if (i + 1 < q.length) load(q, i + 1);
+      if (i + 1 < q.length) load(q, i + 1, contextRef.current);
       else setPlaying(false);
     };
   }, [load]);
@@ -183,13 +204,14 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const step = useCallback(
     (dir: 1 | -1) => {
       const { queue: q, index: i } = state.current;
-      if (q[i + dir]) load(q, i + dir);
+      if (q[i + dir]) load(q, i + dir, contextRef.current);
     },
     [load],
   );
 
   const adopt = useCallback((items: QueueItem[], at: number) => {
     state.current = { queue: items, index: at };
+    setContext('album');
     setQueue(items);
     setIndex(at);
   }, []);
@@ -316,6 +338,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       current,
       playing,
       loading,
+      context,
       playQueue: load,
       adoptQueue: adopt,
       toggle: () => (playing ? player.current?.pauseVideo() : player.current?.playVideo()),
@@ -348,7 +371,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       },
       setSlot,
     }),
-    [queue, index, current, playing, loading, load, adopt, step, close, time, sound],
+    [queue, index, current, playing, loading, context, load, adopt, step, close, time, sound],
   );
 
   return (

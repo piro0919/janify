@@ -1,13 +1,13 @@
 'use client';
 
-import { type ReactNode, useEffect, useRef } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import type { QueueItem, Track } from '@/lib/catalog';
 import { songKeyOf } from '@/lib/library';
 import { NO_RESTORE } from '@/lib/no-restore';
-import { FadeImage } from './fade-image';
 import { HeartButton } from './favorites/heart-button';
 import { Icon } from './icon';
 import { Bars } from './now-playing';
+import { PlayerStage } from './player-stage';
 import { usePlayer } from './player/player-provider';
 
 /**
@@ -31,30 +31,16 @@ export function AlbumPlayer({
   queue: QueueItem[];
   cover: string | null;
 }) {
-  const {
-    current,
-    playing,
-    queue: playingQueue,
-    playQueue,
-    adoptQueue,
-    toggle,
-    setSlot,
-  } = usePlayer();
-  const here = current?.albumId === albumId;
-  const slot = useRef<HTMLDivElement>(null);
+  const { current, playing, context, playQueue, adoptQueue, toggle } = usePlayer();
+  // お気に入りの並びで流している曲は、このアルバムの曲でも、お気に入りの画面の側で大きく出す
+  const here = current?.albumId === albumId && context !== 'favorites';
 
   // 曲の一覧から押して来たときは、その1曲だけを流している。曲は止めずに、順番待ちをこのアルバムの曲目にする
   useEffect(() => {
-    if (!here || !current || playingQueue.length !== 1) return;
+    if (!here || !current || context !== 'pending') return;
     const at = queue.findIndex((q) => q.videoId === current.videoId);
-    if (at >= 0 && queue.length > 1) adoptQueue(queue, at);
-  }, [here, current, playingQueue.length, queue, adoptQueue]);
-
-  useEffect(() => {
-    if (!here) return;
-    setSlot(slot.current);
-    return () => setSlot(null);
-  }, [here, setSlot]);
+    if (at >= 0) adoptQueue(queue, at);
+  }, [here, current, context, queue, adoptQueue]);
 
   const start = (videoId?: string) =>
     playQueue(
@@ -73,35 +59,12 @@ export function AlbumPlayer({
     // スマホで動画だけを貼り付けるため、列の箱（contents）を消して、動画をこの箱の直下の子にする
     <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
       <div className="contents lg:sticky lg:top-20 lg:block">
-        {here ? (
-          // 共通のプレイヤーがここに重なる（player-provider.tsx が位置を合わせる）。中には何も置かない
-          <div
-            ref={slot}
-            className="aspect-video w-full rounded-lg bg-black max-lg:sticky max-lg:top-16 max-lg:z-10"
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => start()}
-            aria-label="このアルバムを再生"
-            className="group relative block aspect-video w-full overflow-hidden rounded-lg bg-surface"
-          >
-            {cover && (
-              <FadeImage
-                src={cover}
-                alt=""
-                fill
-                loading="eager"
-                sizes="(min-width: 1024px) 60vw, 100vw"
-                className="object-cover"
-              />
-            )}
-            {/* サムネイルの上に重ねてよいのは再生ボタンだけ（YouTube の規約） */}
-            <span className="absolute top-1/2 left-1/2 grid size-16 -translate-1/2 place-items-center rounded-full bg-accent text-background shadow-lg transition-[scale] duration-200 ease-out group-hover:scale-105 group-active:scale-95">
-              <Icon name="play" className="size-9" />
-            </span>
-          </button>
-        )}
+        <PlayerStage
+          active={here}
+          cover={cover}
+          label="このアルバムを再生"
+          onPlay={() => start()}
+        />
         <div className="lg:mt-4">{heading}</div>
         <div className="flex items-center gap-3 lg:mt-4">
           <button

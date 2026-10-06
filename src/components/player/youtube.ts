@@ -20,6 +20,8 @@ export type YTNamespace = {
       events?: {
         onReady?: (e: { target: YTPlayer }) => void;
         onStateChange?: (e: { data: number }) => void;
+        /** 再生できない動画（削除・非公開・埋め込み不可・有料会員限定など）。data はエラーの番号 */
+        onError?: (e: { data: number }) => void;
       };
     },
   ) => YTPlayer;

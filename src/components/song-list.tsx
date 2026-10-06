@@ -14,7 +14,28 @@ import { usePlayer } from './player/player-provider';
  * （YouTube Music・Amazon Music と同じ）。iPhone は押した瞬間の操作の中で再生を始めないと音が出ないので、
  * ここでその1曲を流し始め、順番待ちはアルバムの画面に着いてからアルバムの曲目に差し替える
  */
-export function SongList({ songs, columns }: { songs: QueueItem[]; columns?: boolean }) {
+export function SongList({
+  songs,
+  columns,
+  favorites,
+  removed,
+  hearts = true,
+}: {
+  songs: QueueItem[];
+  columns?: boolean;
+  /**
+   * お気に入りの曲の全体。渡すと、押した曲はアルバムの画面ではなくお気に入りの画面へ移り、
+   * お気に入りの並び順で流れる（トップやライブラリのお気に入りの棚。songs はその一部のこともある）
+   */
+  favorites?: QueueItem[];
+  /** 開いているあいだに外したお気に入り（`songs:鍵`）。行を薄く出す */
+  removed?: Set<string>;
+  /**
+   * 行のハートを出すか。お気に入りの棚（トップ・ライブラリ）は全部お気に入りなので出さない。
+   * お気に入りの出し入れは、お気に入りの曲の画面でする
+   */
+  hearts?: boolean;
+}) {
   const { current, playing, playQueue } = usePlayer();
   const router = useRouter();
   return (
@@ -31,16 +52,23 @@ export function SongList({ songs, columns }: { songs: QueueItem[]; columns?: boo
     >
       {songs.map((song, i) => {
         const active = current?.videoId === song.videoId && current.albumId === song.albumId;
+        const gone = removed?.has(`songs:${songKeyOf(song)}`);
         return (
           <div
             key={`${song.albumId}:${song.videoId}`}
-            className={`group flex min-w-0 snap-start items-center rounded-md pr-1 transition-colors duration-150 hover:bg-foreground/8 ${active ? 'bg-foreground/10' : ''}`}
+            className={`group flex min-w-0 snap-start items-center rounded-md pr-1 transition-[background-color,opacity] duration-150 hover:bg-foreground/8 ${active ? 'bg-foreground/10' : ''} ${gone ? 'opacity-50' : ''}`}
           >
             <button
               type="button"
               onClick={() => {
-                playQueue([song], 0);
-                router.push(`/albums/${song.albumId}`);
+                if (favorites) {
+                  const at = favorites.findIndex((f) => songKeyOf(f) === songKeyOf(song));
+                  playQueue(favorites, Math.max(0, at), 'favorites');
+                  router.push('/library/songs');
+                } else {
+                  playQueue([song], 0, 'pending');
+                  router.push(`/albums/${song.albumId}`);
+                }
               }}
               className="flex min-w-0 flex-1 items-center gap-3 p-1.5 text-left transition-[scale] duration-150 ease-out active:scale-[0.98]"
             >
@@ -65,13 +93,15 @@ export function SongList({ songs, columns }: { songs: QueueItem[]; columns?: boo
                 </span>
               </span>
             </button>
-            <HeartButton
-              kind="songs"
-              itemKey={songKeyOf(song)}
-              label={song.title}
-              className="size-8"
-              quiet
-            />
+            {hearts && (
+              <HeartButton
+                kind="songs"
+                itemKey={songKeyOf(song)}
+                label={song.title}
+                className="size-8"
+                quiet
+              />
+            )}
           </div>
         );
       })}
