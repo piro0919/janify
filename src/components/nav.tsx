@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Icon, type IconName } from './icon';
@@ -20,9 +21,20 @@ function useActive() {
 /** ロゴ。開いたときに一度だけ、マウスを載せるともう一度、きらめきが字の上を走る（globals.css の .logo） */
 export function Logo() {
   return (
-    <Link href="/" aria-label="Janify ホーム" className="logo text-2xl">
-      <span>Jani</span>
-      <span className="text-accent">fy</span>
+    <Link href="/" aria-label="Janify ホーム" className="flex items-center gap-2">
+      {/* アプリのアイコン（scripts/build-icons.py が書き出したもの）を、角を丸めたタイルとして添える */}
+      <Image
+        src="/icon-192x192.png"
+        alt=""
+        width={28}
+        height={28}
+        className="rounded-md"
+        priority
+      />
+      <span className="logo text-2xl">
+        <span>Jani</span>
+        <span className="text-accent">fy</span>
+      </span>
     </Link>
   );
 }
