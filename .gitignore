@@ -49,3 +49,6 @@ next-env.d.ts
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Lighthouse CI の結果（手元だけ）
+/.lighthouseci/
