@@ -2,7 +2,7 @@
 
 # Janify
 
-旧ジャニーズ事務所に所属していたアーティストの曲を、アルバムごとに聴ける音楽プレイヤー風のサイト。公開先は janify.kkweb.io（未公開）。
+旧ジャニーズ事務所に所属していたアーティストの曲を、アルバムごとに聴ける音楽プレイヤー風のサイト。公開先は https://janify.kkweb.io/ 。
 2026-10-06〜07 に壁打ちで合意し、同じセッションで手元で動くところまで作った。
 
 ## 現在地（2026-10-07）
@@ -11,18 +11,22 @@
 - `src/data/catalog.json` は Notion から書き出した版。アーティスト41組・アルバム396枚・再生できる曲4760曲
   - 内訳: Topic の公式音源 4313・公式の MV 186・非公式の動画 261
 - 非公式の動画の検索が、この Mac の launchd で毎日17時半に回っている（後述）。全部を一巡するのに36日ほど
-- GitHub・Vercel にはまだ上げていない。コミットはローカルの main だけ
+- 2026-10-07 に公開した。GitHub は piro0919/janify の main、Vercel につないで janify.kkweb.io で配信している
+  - Vercel に環境変数は無い。`.env.local` のトークンは `scripts/` だけが使う
+  - kkweb.io は別の Vercel アカウントに紐づいていて、サブドメインを足すたびに `_vercel` の TXT が要る。Cloudflare の DNS は `.env.local` の `CLOUDFLARE_API_TOKEN`（kkweb.io の DNS 編集のみ）で API から足せる
 
 ## 残りの作業（上から順に）
 
-1. 本人に手元の画面を触ってもらい、直したい点を聞く。公開の前に必ず実物を見せる
-2. GitHub にリポジトリを作って push（私物なので main に直接）
-3. Vercel に載せ、janify.kkweb.io をつなぐ
-4. 「ジャニーズ」と Spotify の「〜ify」の商標を確かめる。公開前の宿題
-5. 公開後、YouTube Data API の検索の上限を増やす申請を出す（本人が出すと決めた）
+1. 本人に画面を触ってもらい、直したい点を聞く
+2. 「ジャニーズ」と Spotify の「〜ify」の商標を確かめる。公開前の宿題だったが、確かめないまま公開した
+3. YouTube Data API の検索の上限を増やす申請を出す（本人が出すと決めた）
    - 申請には、公開済みの URL・プライバシーポリシー・利用規約のページが要る。ページはまだ無い
+   - お問い合わせの窓口は Google フォーム（piro.haniwa@gmail.com の持ち物）。回答が来るとメールで届く。サイトにはまだリンクしていない
+     - 回答用: https://docs.google.com/forms/d/e/1FAIpQLSdyxxT4dmq7nkVL-CDh76Oye78Yvd6knPGVmbJZh-a2uYRh1g/viewform
+     - 編集用: https://docs.google.com/forms/d/1mpwA-1ttj88JwtYG3NwJXN0I0q08RS1EX9rodfwgGhA/edit
+     - X のアカウントを出さないためにフォームにした。koidamashii の「自前のフォーム→DB→毎朝 Issue」は、Janify のリポジトリが公開で DB も無いので見送った
    - フォーム: https://support.google.com/youtube/contact/yt_api_form
-6. 非公式の検索が進んだら、定期的に Notion へ反映して書き出す:
+4. 非公式の検索が進んだら、定期的に Notion へ反映して書き出す:
 
    ```bash
    pnpm notion:videos && pnpm notion:export
