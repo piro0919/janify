@@ -20,8 +20,8 @@
 1. 本人に画面を触ってもらい、直したい点を聞く
 2. 「ジャニーズ」と Spotify の「〜ify」の商標を確かめる。公開前の宿題だったが、確かめないまま公開した
 3. YouTube Data API の検索の上限を増やす申請を出す（本人が出すと決めた）
-   - 申請には、公開済みの URL・プライバシーポリシー・利用規約のページが要る。ページはまだ無い
-   - お問い合わせの窓口は Google フォーム（piro.haniwa@gmail.com の持ち物）。回答が来るとメールで届く。サイトにはまだリンクしていない
+   - 申請に要る公開済みの URL・プライバシーポリシー（/privacy）・利用規約（/terms）は揃った。運営者は kk-web と表示し、本名は出さない
+   - お問い合わせの窓口は Google フォーム（piro.haniwa@gmail.com の持ち物）。回答が来るとメールで届く。URL は `src/lib/site.ts`、全ページのフッターからリンクしている
      - 回答用: https://docs.google.com/forms/d/e/1FAIpQLSdyxxT4dmq7nkVL-CDh76Oye78Yvd6knPGVmbJZh-a2uYRh1g/viewform
      - 編集用: https://docs.google.com/forms/d/1mpwA-1ttj88JwtYG3NwJXN0I0q08RS1EX9rodfwgGhA/edit
      - X のアカウントを出さないためにフォームにした。koidamashii の「自前のフォーム→DB→毎朝 Issue」は、Janify のリポジトリが公開で DB も無いので見送った
