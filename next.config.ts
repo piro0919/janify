@@ -1,4 +1,6 @@
 import type { NextConfig } from 'next';
+// 環境変数を確かめる。欠けていればビルドの頭で止まる
+import './src/env';
 
 const nextConfig: NextConfig = {
   images: {

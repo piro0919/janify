@@ -1,3 +1,5 @@
+import { scriptEnv } from './env';
+
 // Notion の API を叩く。トークンは .env.local の NOTION_TOKEN（kk-web と同じ連携）。
 // 1秒あたり3回までの制限があるので間を空け、429 が返ったら待って打ち直す
 const VERSION = '2025-09-03';
@@ -12,8 +14,7 @@ export async function notion<T = unknown>(
   path: string,
   body?: unknown,
 ): Promise<T> {
-  const token = process.env.NOTION_TOKEN;
-  if (!token) throw new Error('NOTION_TOKEN が .env.local にありません');
+  const token = scriptEnv('NOTION_TOKEN');
 
   for (let attempt = 0; ; attempt++) {
     const slot = Math.max(Date.now(), nextSlot);
