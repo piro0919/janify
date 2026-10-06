@@ -1,15 +1,19 @@
 // Notion の API を叩く。トークンは .env.local の NOTION_TOKEN（kk-web と同じ連携）。
 // 1秒あたり3回までの制限があるので間を空け、429 が返ったら待って打ち直す
-const VERSION = "2025-09-03";
+const VERSION = '2025-09-03';
 const INTERVAL_MS = 350;
 
 // 同時に呼ばれても、送り出す時刻が INTERVAL_MS ずつずれるように枠を配る。
 // 返事は1回1〜2秒かかるので、待ってから次を送ると制限の数分の一しか出ない
 let nextSlot = 0;
 
-export async function notion<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
+export async function notion<T = unknown>(
+  method: string,
+  path: string,
+  body?: unknown,
+): Promise<T> {
   const token = process.env.NOTION_TOKEN;
-  if (!token) throw new Error("NOTION_TOKEN が .env.local にありません");
+  if (!token) throw new Error('NOTION_TOKEN が .env.local にありません');
 
   for (let attempt = 0; ; attempt++) {
     const slot = Math.max(Date.now(), nextSlot);
@@ -18,7 +22,11 @@ export async function notion<T = unknown>(method: string, path: string, body?: u
 
     const res = await fetch(`https://api.notion.com/v1${path}`, {
       method,
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "Notion-Version": VERSION },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Notion-Version': VERSION,
+      },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     if (res.ok) return res.json() as Promise<T>;
@@ -30,12 +38,14 @@ export async function notion<T = unknown>(method: string, path: string, body?: u
   }
 }
 
-export async function queryAll<T = { id: string; properties: Record<string, any> }>(dataSourceId: string): Promise<T[]> {
+export async function queryAll<T = { id: string; properties: Record<string, any> }>(
+  dataSourceId: string,
+): Promise<T[]> {
   const rows: T[] = [];
   let cursor: string | undefined;
   do {
     const body = await notion<{ results: T[]; has_more: boolean; next_cursor: string }>(
-      "POST",
+      'POST',
       `/data_sources/${dataSourceId}/query`,
       { page_size: 100, start_cursor: cursor },
     );

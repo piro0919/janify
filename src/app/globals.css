@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* 音楽プレイヤーらしく暗い地に固定する。YouTube Music の再生画面に寄せる */
 :root {

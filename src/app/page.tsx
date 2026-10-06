@@ -1,5 +1,5 @@
-import { CoverCard } from "@/components/cover-card";
-import { artists, coverOf } from "@/lib/catalog";
+import { CoverCard } from '@/components/cover-card';
+import { artists, coverOf } from '@/lib/catalog';
 
 export default function Home() {
   return (

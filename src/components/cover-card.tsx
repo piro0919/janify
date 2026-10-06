@@ -1,5 +1,5 @@
-import Image from "next/image";
-import Link from "next/link";
+import Image from 'next/image';
+import Link from 'next/link';
 
 // YouTube のサムネイルは加工せずに出す（規約）。押すと詳しい画面へ移るだけで、ここでは再生しない
 export function CoverCard({
@@ -24,7 +24,7 @@ export function CoverCard({
             src={cover}
             alt=""
             fill
-            loading={eager ? "eager" : "lazy"}
+            loading={eager ? 'eager' : 'lazy'}
             sizes="(min-width: 1024px) 20vw, (min-width: 640px) 33vw, 50vw"
             className="object-cover transition-opacity group-hover:opacity-80"
           />

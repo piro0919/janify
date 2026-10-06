@@ -40,3 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /data/raw/
+
+# Playwright MCP の撮影や記録
+.playwright-mcp/

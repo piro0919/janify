@@ -1,0 +1,43 @@
+# プルリクエストに、手元のフック（lefthook）と同じ確かめをかける。
+# 依存の更新（Renovate）の PR は手元を通らないので、ここが唯一の確かめ
+name: ci
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+
+      - run: pnpm lint
+
+      - run: pnpm format:check
+
+      - run: pnpm secretlint
+
+      - run: pnpm test
+
+      # アルバムのページはすべてビルドのときに作る。catalog.json の誤りはここで落ちる
+      - run: pnpm build

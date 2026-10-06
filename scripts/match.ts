@@ -2,12 +2,12 @@
 // - Topic チャンネルの音源: 題名と曲名が一致したもの（全尺の公式音源）
 // - 公式チャンネルの MV: 題名の「」などの中が曲名と一致し、MV を示す語が入っているもの
 // 両方あるときは、MV が全尺なら MV を使う（顔が見える）。ショート版なら Topic の音源を使う
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile } from 'node:fs/promises';
 
 type Album = { artist: string; page: string; title: string; tracks: string[] };
 type Artist = { name: string; page: string };
 type Video = { id: string; title: string; channel: string; topic: boolean; seconds: number };
-type Match = { videoId: string; kind: "mv" | "audio"; videoTitle: string };
+type Match = { videoId: string; kind: 'mv' | 'audio'; videoTitle: string };
 
 const MV = /music video|music clip|\bmv\b|\bpv\b|official video|ミュージックビデオ/i;
 // 「MV鑑賞会」「MV preview」「MV公開直前 YouTube Live」のような、MV を見る企画も弾く
@@ -17,21 +17,23 @@ const NOT_MV =
 /** 全角半角・大小・記号・空白の違いを潰す */
 const norm = (s: string) =>
   s
-    .normalize("NFKC")
+    .normalize('NFKC')
     .toLowerCase()
-    .replace(/[\s\-‐–—~〜～・･!！?？.,、。'’"“”`*★☆♪♡＆&:：;/／]/g, "");
+    .replace(/[\s\-‐–—~〜～・･!！?？.,、。'’"“”`*★☆♪♡＆&:：;/／]/g, '');
 
 /** 末尾の (Album ver.) のような注記を外したもの。一致しないときの二段目に使う */
-const bare = (s: string) => norm(s.replace(/\s*[（(［\[][^（）()［］\[\]]*[）)］\]]\s*$/, ""));
+const bare = (s: string) => norm(s.replace(/\s*[（(［\[][^（）()［］\[\]]*[）)］\]]\s*$/, ''));
 
 function quoted(title: string): string[] {
   return [...title.matchAll(/[「『"“]([^」』"”]+)[」』"”]/g)].map((m) => m[1]);
 }
 
 async function main() {
-  const artists: Artist[] = JSON.parse(await readFile("data/raw/artists.json", "utf8"));
-  const albums: Album[] = JSON.parse(await readFile("data/raw/albums.json", "utf8"));
-  const videos: Record<string, Video[]> = JSON.parse(await readFile("data/raw/videos.json", "utf8"));
+  const artists: Artist[] = JSON.parse(await readFile('data/raw/artists.json', 'utf8'));
+  const albums: Album[] = JSON.parse(await readFile('data/raw/albums.json', 'utf8'));
+  const videos: Record<string, Video[]> = JSON.parse(
+    await readFile('data/raw/videos.json', 'utf8'),
+  );
   const matches: Record<string, Match> = {};
   const stats = { tracks: 0, mv: 0, audio: 0 };
 
@@ -48,24 +50,27 @@ async function main() {
       if (n.length === 0) continue;
 
       const topic =
-        audio.find((v) => norm(v.title) === n) ?? audio.find((v) => bare(v.title) === bare(track) && bare(track).length > 0);
+        audio.find((v) => norm(v.title) === n) ??
+        audio.find((v) => bare(v.title) === bare(track) && bare(track).length > 0);
       const mv = mvs.find((v) => quoted(v.title).some((q) => norm(q) === n));
 
       // MV がショート版かどうかは、Topic の音源の長さと比べて見る。音源が無ければ2分半を目安にする
       const fullMv = mv && (topic ? mv.seconds >= topic.seconds * 0.9 : mv.seconds >= 150);
       if (fullMv) {
-        matches[key] = { videoId: mv.id, kind: "mv", videoTitle: mv.title };
+        matches[key] = { videoId: mv.id, kind: 'mv', videoTitle: mv.title };
         stats.mv++;
       } else if (topic) {
-        matches[key] = { videoId: topic.id, kind: "audio", videoTitle: topic.title };
+        matches[key] = { videoId: topic.id, kind: 'audio', videoTitle: topic.title };
         stats.audio++;
       }
     }
   }
 
-  await writeFile("data/raw/matches.json", `${JSON.stringify(matches, null, 2)}\n`);
+  await writeFile('data/raw/matches.json', `${JSON.stringify(matches, null, 2)}\n`);
   const hit = stats.mv + stats.audio;
-  console.error(`曲 ${stats.tracks}、当たり ${hit}（MV ${stats.mv}、音源 ${stats.audio}）、${Math.round((hit / stats.tracks) * 100)}%`);
+  console.error(
+    `曲 ${stats.tracks}、当たり ${hit}（MV ${stats.mv}、音源 ${stats.audio}）、${Math.round((hit / stats.tracks) * 100)}%`,
+  );
 }
 
 main();

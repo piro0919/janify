@@ -1,8 +1,8 @@
 // アーティストごとの分類からアルバムの記事を集め、曲目を取り出す。
 // アルバムかどうかは「2024年のアルバム」のような年の分類で見分ける。曲目の書き方は
 // 曲目表の書式（{{Tracklist}}）と番号付きの箇条書き（#）の二通りを読む
-import { readFile, writeFile } from "node:fs/promises";
-import { categoriesOf, categoryMembers, wikitext } from "./lib/wiki";
+import { readFile, writeFile } from 'node:fs/promises';
+import { categoriesOf, categoryMembers, wikitext } from './lib/wiki';
 
 type Artist = { name: string; page: string; categories: string[] };
 type Album = { artist: string; title: string; page: string; year: number | null; tracks: string[] };
@@ -19,13 +19,13 @@ const NOT_A_SONG =
 
 function clean(text: string): string {
   return text
-    .replace(/\[\[(?:File|ファイル|画像|Image):[^\]]*\]\]/gi, "")
-    .replace(/<ref[^>]*\/>|<ref[^>]*>[\s\S]*?<\/ref>/g, "")
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<[^>]+>/g, "")
-    .replace(/\[\[(?:[^|\]]*\|)?([^\]]*)\]\]/g, "$1")
-    .replace(/\{\{[^{}]*\}\}/g, "")
-    .replace(/'{2,}/g, "")
+    .replace(/\[\[(?:File|ファイル|画像|Image):[^\]]*\]\]/gi, '')
+    .replace(/<ref[^>]*\/>|<ref[^>]*>[\s\S]*?<\/ref>/g, '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\[\[(?:[^|\]]*\|)?([^\]]*)\]\]/g, '$1')
+    .replace(/\{\{[^{}]*\}\}/g, '')
+    .replace(/'{2,}/g, '')
     .trim();
 }
 
@@ -34,12 +34,14 @@ function titleOf(line: string): string {
   const text = clean(line);
   const quoted = text.match(/^「(.+?)」/);
   if (quoted) return quoted[1].trim();
-  return text
-    .split(/\s+[-–—]\s+|\s*［|\s*\[|　/)[0]
-    // 作詞者などの注記は閉じ括弧が無いこともある
-    .replace(/\s*[（(](作詞|作曲|編曲|詞|曲)[^）)]*[）)]?\s*$/, "")
-    .replace(/\s*[（(][^（）()]*(収録|のみ|限定|読み)[^（）()]*[）)]\s*$/, "")
-    .trim();
+  return (
+    text
+      .split(/\s+[-–—]\s+|\s*［|\s*\[|　/)[0]
+      // 作詞者などの注記は閉じ括弧が無いこともある
+      .replace(/\s*[（(](作詞|作曲|編曲|詞|曲)[^）)]*[）)]?\s*$/, '')
+      .replace(/\s*[（(][^（）()]*(収録|のみ|限定|読み)[^（）()]*[）)]\s*$/, '')
+      .trim()
+  );
 }
 
 /** 「収録曲」の節だけを返す。見出しの名前はアルバムによって揺れる */
@@ -48,7 +50,7 @@ function trackSection(text: string): string | null {
   if (!heading) return null;
   const level = heading[1].length;
   const rest = text.slice(heading.index + heading[0].length);
-  const end = new RegExp(`^={2,${level}}[^=]`, "m").exec(rest);
+  const end = new RegExp(`^={2,${level}}[^=]`, 'm').exec(rest);
   return end ? rest.slice(0, end.index) : rest;
 }
 
@@ -60,7 +62,7 @@ function withoutVideo(section: string): string {
       const heading = part.match(/^=+([^=\n]+)=+/);
       return !heading || !SKIP_SECTION.test(heading[1]);
     })
-    .join("\n");
+    .join('\n');
 }
 
 function tracksFromTemplate(section: string): string[] {
@@ -77,9 +79,9 @@ function tracksFromTemplate(section: string): string[] {
 
 function tracksFromList(section: string): string[] {
   return section
-    .split("\n")
+    .split('\n')
     .filter((line) => /^#(?![#:*])/.test(line))
-    .map((line) => titleOf(line.replace(/^#\s*/, "")));
+    .map((line) => titleOf(line.replace(/^#\s*/, '')));
 }
 
 function tracksOf(text: string): string[] {
@@ -93,7 +95,7 @@ function tracksOf(text: string): string[] {
 }
 
 async function main() {
-  const artists: Artist[] = JSON.parse(await readFile("data/raw/artists.json", "utf8"));
+  const artists: Artist[] = JSON.parse(await readFile('data/raw/artists.json', 'utf8'));
   const only = process.argv[2];
   const albums: Album[] = [];
 
@@ -118,15 +120,26 @@ async function main() {
       if (albums.some((a) => a.artist === artist.name && a.page === page.title)) continue;
       const released = page.text.match(/\|\s*(?:Released|発売日?)\s*=[^\n]*?(\d{4})/i);
       const year = yearCategory ? Number(yearCategory[1]) : released ? Number(released[1]) : null;
-      albums.push({ artist: artist.name, title: title.replace(/ \([^)]*\)$/, ""), page: page.title, year, tracks: tracksOf(page.text) });
+      albums.push({
+        artist: artist.name,
+        title: title.replace(/ \([^)]*\)$/, ''),
+        page: page.title,
+        year,
+        tracks: tracksOf(page.text),
+      });
       count++;
     }
     console.error(`${artist.name}: アルバム ${count} 枚`);
   }
 
-  await writeFile(only ? `data/raw/albums-${only}.json` : "data/raw/albums.json", `${JSON.stringify(albums, null, 2)}\n`);
+  await writeFile(
+    only ? `data/raw/albums-${only}.json` : 'data/raw/albums.json',
+    `${JSON.stringify(albums, null, 2)}\n`,
+  );
   const empty = albums.filter((a) => a.tracks.length === 0);
-  console.error(`アルバム ${albums.length} 枚、曲 ${albums.reduce((n, a) => n + a.tracks.length, 0)} 曲、曲目が取れなかったもの ${empty.length} 枚`);
+  console.error(
+    `アルバム ${albums.length} 枚、曲 ${albums.reduce((n, a) => n + a.tracks.length, 0)} 曲、曲目が取れなかったもの ${empty.length} 枚`,
+  );
 }
 
 main();

@@ -5,17 +5,17 @@
 // 一日分を使い切ったら止まり、翌日に走らせ直すと続きから検索する。
 //   pnpm youtube:unofficial        残りを、枠の許す限り
 //   pnpm youtube:unofficial 5      5曲だけ検索する（試し用）
-import { existsSync } from "node:fs";
-import { readFile, writeFile } from "node:fs/promises";
-import { bareTitle, norm, songKey } from "./lib/song";
-import { youtube } from "./lib/youtube";
+import { existsSync } from 'node:fs';
+import { readFile, writeFile } from 'node:fs/promises';
+import { bareTitle, norm, songKey } from './lib/song';
+import { youtube } from './lib/youtube';
 
 type Album = { artist: string; page: string; title: string; tracks: string[] };
 type Artist = { name: string; page: string };
 type Found = { videoId: string; videoTitle: string; channel: string };
 type State = { searched: string[]; songs: Record<string, Found> };
 
-const STATE_FILE = "data/raw/unofficial.json";
+const STATE_FILE = 'data/raw/unofficial.json';
 
 // 歌ってみた・演奏・カラオケ・反応動画などは本人の歌ではない
 const NOT_ORIGINAL =
@@ -23,11 +23,13 @@ const NOT_ORIGINAL =
 
 async function main() {
   const limit = Number(process.argv[2] ?? Infinity);
-  const artists: Artist[] = JSON.parse(await readFile("data/raw/artists.json", "utf8"));
-  const albums: Album[] = JSON.parse(await readFile("data/raw/albums.json", "utf8"));
-  const official: Record<string, unknown> = JSON.parse(await readFile("data/raw/matches.json", "utf8"));
+  const artists: Artist[] = JSON.parse(await readFile('data/raw/artists.json', 'utf8'));
+  const albums: Album[] = JSON.parse(await readFile('data/raw/albums.json', 'utf8'));
+  const official: Record<string, unknown> = JSON.parse(
+    await readFile('data/raw/matches.json', 'utf8'),
+  );
   const state: State = existsSync(STATE_FILE)
-    ? JSON.parse(await readFile(STATE_FILE, "utf8"))
+    ? JSON.parse(await readFile(STATE_FILE, 'utf8'))
     : { searched: [], songs: {} };
 
   // 公式で当たらなかった曲を、曲ごとにまとめて数える
@@ -54,19 +56,19 @@ async function main() {
     if (searches >= limit) break;
     let items: { id: { videoId: string }; snippet: { title: string; channelTitle: string } }[];
     try {
-      const res = await youtube("search", {
-        part: "snippet",
-        type: "video",
+      const res = await youtube('search', {
+        part: 'snippet',
+        type: 'video',
         q: `${song.artist} ${song.title}`,
-        maxResults: "10",
-        regionCode: "JP",
-        videoEmbeddable: "true",
+        maxResults: '10',
+        regionCode: 'JP',
+        videoEmbeddable: 'true',
       });
       items = res.items;
     } catch (e) {
       // 枠切れは 403 quotaExceeded のほか、429 "Quota exceeded" でも返ってくる
       if (/quota/i.test(String(e))) {
-        console.error("今日の検索枠を使い切った。明日また走らせると続きから検索する");
+        console.error('今日の検索枠を使い切った。明日また走らせると続きから検索する');
         break;
       }
       throw e;
@@ -80,12 +82,18 @@ async function main() {
     const title = norm(song.title);
     const hit = items.find((v) => {
       const t = norm(v.snippet.title);
-      if (!t.includes(artist) || !t.includes(title) || NOT_ORIGINAL.test(v.snippet.title)) return false;
-      const rest = t.replace(artist, "").replace(title, "");
+      if (!t.includes(artist) || !t.includes(title) || NOT_ORIGINAL.test(v.snippet.title))
+        return false;
+      const rest = t.replace(artist, '').replace(title, '');
       return rest.length <= 12;
     });
-    if (hit) state.songs[key] = { videoId: hit.id.videoId, videoTitle: hit.snippet.title, channel: hit.snippet.channelTitle };
-    console.error(`${song.artist} / ${song.title}: ${hit ? hit.snippet.title : "なし"}`);
+    if (hit)
+      state.songs[key] = {
+        videoId: hit.id.videoId,
+        videoTitle: hit.snippet.title,
+        channel: hit.snippet.channelTitle,
+      };
+    console.error(`${song.artist} / ${song.title}: ${hit ? hit.snippet.title : 'なし'}`);
     await writeFile(STATE_FILE, `${JSON.stringify(state, null, 2)}\n`);
   }
 

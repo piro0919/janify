@@ -1,18 +1,18 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { CoverCard } from "@/components/cover-card";
-import { artists, coverOf, findArtist } from "@/lib/catalog";
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { CoverCard } from '@/components/cover-card';
+import { artists, coverOf, findArtist } from '@/lib/catalog';
 
 export function generateStaticParams() {
   return artists.map((a) => ({ id: a.id }));
 }
 
-export async function generateMetadata({ params }: PageProps<"/artists/[id]">): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<'/artists/[id]'>): Promise<Metadata> {
   const artist = findArtist((await params).id);
   return { title: artist?.name };
 }
 
-export default async function ArtistPage({ params }: PageProps<"/artists/[id]">) {
+export default async function ArtistPage({ params }: PageProps<'/artists/[id]'>) {
   const artist = findArtist((await params).id);
   if (!artist) notFound();
 
