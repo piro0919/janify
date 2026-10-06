@@ -1,6 +1,7 @@
 'use client';
 
 import type { QueueItem } from '@/lib/catalog';
+import { useRouter } from 'next/navigation';
 import { thumbOf } from '@/lib/thumb';
 import { songKeyOf } from '@/lib/library';
 import { HeartButton } from './favorites/heart-button';
@@ -8,9 +9,14 @@ import { FadeImage } from './fade-image';
 import { Bars } from './now-playing';
 import { usePlayer } from './player/player-provider';
 
-/** 小さなサムネイルと曲名を詰めて並べる一覧。押すとこの一覧を順番待ちにして、その曲から流す */
+/**
+ * 小さなサムネイルと曲名を詰めて並べる一覧。押すと曲の入ったアルバムの画面へ移り、その曲から流す
+ * （YouTube Music・Amazon Music と同じ）。iPhone は押した瞬間の操作の中で再生を始めないと音が出ないので、
+ * ここでその1曲を流し始め、順番待ちはアルバムの画面に着いてからアルバムの曲目に差し替える
+ */
 export function SongList({ songs, columns }: { songs: QueueItem[]; columns?: boolean }) {
   const { current, playing, playQueue } = usePlayer();
+  const router = useRouter();
   return (
     <div
       className={
@@ -32,7 +38,10 @@ export function SongList({ songs, columns }: { songs: QueueItem[]; columns?: boo
           >
             <button
               type="button"
-              onClick={() => playQueue(songs, i)}
+              onClick={() => {
+                playQueue([song], 0);
+                router.push(`/albums/${song.albumId}`);
+              }}
               className="flex min-w-0 flex-1 items-center gap-3 p-1.5 text-left transition-[scale] duration-150 ease-out active:scale-[0.98]"
             >
               <FadeImage

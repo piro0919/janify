@@ -27,9 +27,24 @@ export function AlbumPlayer({
   queue: QueueItem[];
   cover: string | null;
 }) {
-  const { current, playing, playQueue, toggle, setSlot } = usePlayer();
+  const {
+    current,
+    playing,
+    queue: playingQueue,
+    playQueue,
+    adoptQueue,
+    toggle,
+    setSlot,
+  } = usePlayer();
   const here = current?.albumId === albumId;
   const slot = useRef<HTMLDivElement>(null);
+
+  // 曲の一覧から押して来たときは、その1曲だけを流している。曲は止めずに、順番待ちをこのアルバムの曲目にする
+  useEffect(() => {
+    if (!here || !current || playingQueue.length !== 1) return;
+    const at = queue.findIndex((q) => q.videoId === current.videoId);
+    if (at >= 0 && queue.length > 1) adoptQueue(queue, at);
+  }, [here, current, playingQueue.length, queue, adoptQueue]);
 
   useEffect(() => {
     if (!here) return;

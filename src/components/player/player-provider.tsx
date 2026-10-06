@@ -30,6 +30,11 @@ type PlayerContext = {
   loading: boolean;
   /** 曲の一覧を順番待ちに積み、start 番目から再生する */
   playQueue: (items: QueueItem[], start: number) => void;
+  /**
+   * 流している曲は止めずに、順番待ちだけを差し替える。曲の一覧から押したときは、まずその1曲を
+   * 流し始め、アルバムの画面に着いたところでアルバムの曲目に差し替える（album-player.tsx）
+   */
+  adoptQueue: (items: QueueItem[], index: number) => void;
   toggle: () => void;
   step: (dir: 1 | -1) => void;
   /** 再生をやめ、プレイヤーを消す */
@@ -143,6 +148,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [load],
   );
 
+  const adopt = useCallback((items: QueueItem[], at: number) => {
+    state.current = { queue: items, index: at };
+    setQueue(items);
+    setIndex(at);
+  }, []);
+
   const close = useCallback(() => {
     player.current?.destroy();
     player.current = null;
@@ -244,6 +255,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       playing,
       loading,
       playQueue: load,
+      adoptQueue: adopt,
       toggle: () => (playing ? player.current?.pauseVideo() : player.current?.playVideo()),
       step,
       close,
@@ -254,7 +266,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       time,
       setSlot,
     }),
-    [queue, index, current, playing, loading, load, step, close, time],
+    [queue, index, current, playing, loading, load, adopt, step, close, time],
   );
 
   return (

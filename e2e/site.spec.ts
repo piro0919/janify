@@ -17,16 +17,26 @@ test('検索欄に打つと、検索の画面で結果が絞られる', async ({
   await expect(page.getByRole('heading', { name: /楽曲/ })).toBeVisible();
 });
 
-test('人気曲を押すと、下の帯と右下の窓が出る', async ({ page }) => {
+test('人気曲を押すと、曲の入ったアルバムの画面へ移り、アルバムの曲目の順に流れる', async ({
+  page,
+}) => {
   await page.goto('/');
   // 棚の見出しの横には矢印のボタンもあるので、曲の行（.group）の再生ボタンを押す
   const row = page.locator('section').filter({ hasText: '人気曲' }).locator('.group').first();
   const title = (await row.locator('span.truncate').first().textContent())?.trim() ?? '';
   await row.locator('button').first().click();
-  await expect(page.getByRole('button', { name: 'プレイヤーを閉じる' }).first()).toBeVisible();
-  await expect(page.locator('html')).toHaveAttribute('data-player', 'dock');
+
+  await expect(page).toHaveURL(/\/albums\//);
+  // アルバムの画面では、プレイヤーは右下の窓ではなく大きな置き場所に出る
+  await expect(page.locator('html')).toHaveAttribute('data-player', 'slot');
   await expect(page.locator('iframe[src*="youtube.com/embed"]')).toBeAttached();
-  await expect(page.getByText(title, { exact: true }).last()).toBeVisible();
+  // 押した曲が曲目の中で再生中になり、アルバムに2曲以上あれば「次の曲」が押せる（順番待ちがアルバムの曲目になった）
+  await expect(page.locator('ol li').filter({ hasText: title }).getByLabel('再生中')).toBeVisible();
+  const playable = await page.locator('ol li button:not([disabled])').count();
+  const last = await page.locator('ol li').last().filter({ hasText: title }).count();
+  if (playable > 2 && last === 0) {
+    await expect(page.getByRole('button', { name: '次の曲' })).toBeEnabled();
+  }
 });
 
 test('お気に入りに入れた曲がライブラリに出て、開き直しても残る', async ({ page }) => {
