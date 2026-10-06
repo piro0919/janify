@@ -114,6 +114,8 @@ async function main() {
       if (!cats.includes(`Category:${artist.name}のアルバム`) && !yearCategory) continue;
       const page = await wikitext(title);
       if (!page) continue;
+      // 分類に入った別名の記事が、同じアルバムの記事へ転送されていることがある
+      if (albums.some((a) => a.artist === artist.name && a.page === page.title)) continue;
       const released = page.text.match(/\|\s*(?:Released|発売日?)\s*=[^\n]*?(\d{4})/i);
       const year = yearCategory ? Number(yearCategory[1]) : released ? Number(released[1]) : null;
       albums.push({ artist: artist.name, title: title.replace(/ \([^)]*\)$/, ""), page: page.title, year, tracks: tracksOf(page.text) });
