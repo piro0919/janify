@@ -189,7 +189,12 @@ html[data-player='dock'] .page-bottom {
   html[data-player='slot'] .page-bottom {
     padding-bottom: calc(4rem + 2rem);
   }
+  /*
+   * パソコンでは、右下の窓の分の余白は足さない（YouTube の小さな窓と同じく、中身の上に重ねる）。
+   * 足すとフッターの下ががらんと空いて浮いて見える。窓はフッターの右側に重なるので、フッターの中身は左に寄せてある。
+   * スマホは窓が画面の幅いっぱいに近く、フッターのリンクを丸ごと隠すので、上の余白を残す
+   */
   html[data-player='dock'] .page-bottom {
-    padding-bottom: calc(4rem + 200px + 2.25rem + 2rem);
+    padding-bottom: calc(4rem + 2rem);
   }
 }

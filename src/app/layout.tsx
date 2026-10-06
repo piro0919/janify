@@ -97,7 +97,8 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
                   >
                     お問い合わせ
                   </a>
-                  <span className="ml-auto">© {OPERATOR}</span>
+                  {/* 右下の窓が重なっても隠れないよう、リンクと同じく左に並べる */}
+                  <span>© {OPERATOR}</span>
                 </footer>
               </div>
             </div>
