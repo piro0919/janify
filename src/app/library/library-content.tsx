@@ -82,7 +82,7 @@ function Section({
         {href && (
           <Link
             href={href}
-            className="ml-auto rounded-full border border-line px-3 py-1 text-xs font-bold text-muted transition-colors hover:bg-foreground/8 hover:text-foreground"
+            className="ml-auto rounded-full border border-line/60 bg-sidebar/60 px-3 py-1 text-xs font-bold text-foreground transition-colors hover:bg-sidebar/90"
           >
             すべて表示
           </Link>
