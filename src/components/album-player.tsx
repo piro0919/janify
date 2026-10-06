@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
 import type { QueueItem, Track } from '@/lib/catalog';
 import { songKeyOf } from '@/lib/library';
 import { FadeImage } from './fade-image';
@@ -17,12 +17,15 @@ import { usePlayer } from './player/player-provider';
 export function AlbumPlayer({
   albumId,
   albumTitle,
+  heading,
   tracks,
   queue,
   cover,
 }: {
   albumId: string;
   albumTitle: string;
+  /** 動画の下に出す題名・アーティスト・年。リンクを含むのでページの側で作る */
+  heading: ReactNode;
   tracks: Track[];
   queue: QueueItem[];
   cover: string | null;
@@ -98,6 +101,7 @@ export function AlbumPlayer({
             </span>
           </button>
         )}
+        <div className="lg:mt-4">{heading}</div>
         <div className="flex items-center gap-3 lg:mt-4">
           <button
             type="button"

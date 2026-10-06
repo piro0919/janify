@@ -41,15 +41,22 @@ export default async function AlbumPage({ params }: PageProps<'/albums/[id]'>) {
   return (
     <div className="pt-4">
       <JsonLd data={jsonLd} />
-      <p className="text-xs font-bold text-muted">アルバム</p>
-      <h1 className="mt-1 text-3xl font-bold">{album.title}</h1>
-      <p className="mb-6 text-muted">
-        <Link href={`/artists/${artist.id}`} className="hover:text-foreground hover:underline">
-          {artist.name}
-        </Link>
-        {album.year && ` ・ ${album.year}年`}
-      </p>
       <AlbumPlayer
+        // 題名は動画の下に出す（YouTube の動画のページと同じ並び）
+        heading={
+          <>
+            <h1 className="text-2xl font-bold sm:text-3xl">{album.title}</h1>
+            <p className="mt-1 text-muted">
+              <Link
+                href={`/artists/${artist.id}`}
+                className="hover:text-foreground hover:underline"
+              >
+                {artist.name}
+              </Link>
+              {album.year && ` ・ ${album.year}年`}
+            </p>
+          </>
+        }
         albumId={album.id}
         albumTitle={album.title}
         tracks={album.tracks}
