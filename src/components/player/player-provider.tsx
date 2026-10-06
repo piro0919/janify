@@ -267,12 +267,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       <div
         aria-hidden={mode !== 'dock'}
         inert={mode !== 'dock'}
-        className={`${DOCK_STRIP} ${FADE} z-30 rounded-t-lg bg-bar ${mode === 'dock' ? '' : HIDDEN}`}
+        className={`${DOCK_STRIP} ${FADE} z-30 flex items-center rounded-t-lg bg-bar ${mode === 'dock' ? '' : HIDDEN}`}
       >
         {shown && (
           <Link
             href={`/albums/${shown.albumId}`}
-            className="flex size-full items-center gap-2 px-3 text-xs text-muted transition-colors hover:text-foreground"
+            className="flex h-full min-w-0 flex-1 items-center gap-2 pl-3 text-xs text-muted transition-colors hover:text-foreground"
           >
             <span className="min-w-0 flex-1 truncate">
               <span className="font-bold text-foreground">{shown.title}</span>
@@ -282,6 +282,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
             <Icon name="expand" className="size-4 shrink-0" />
           </Link>
         )}
+        {/* 窓だけ消して音を流し続けることはできない（プレイヤーは見えている必要がある）ので、下の帯の × と同じく再生ごと止める */}
+        <button
+          type="button"
+          aria-label="プレイヤーを閉じる"
+          onClick={close}
+          className="grid h-full w-9 shrink-0 place-items-center text-muted transition-[color,scale] duration-150 ease-out hover:text-foreground active:scale-90"
+        >
+          <Icon name="close" className="size-4" />
+        </button>
       </div>
       {/* プレイヤーの上には何も重ねない（YouTube の規約）。200×200 を下回らない */}
       <div
