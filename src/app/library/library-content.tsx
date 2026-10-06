@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react';
 import { COVER_GRID, CoverCard } from '@/components/cover-card';
 import { useLibrary } from '@/components/favorites/use-library';
-import { Icon } from '@/components/icon';
 import { SongList } from '@/components/song-list';
 
 export function LibraryContent() {
@@ -11,16 +10,7 @@ export function LibraryContent() {
 
   if (!ready) return <p className="pt-8 text-muted">読み込んでいます…</p>;
   if (songs.length + albums.length + artists.length === 0) {
-    return (
-      <div className="flex flex-col items-start gap-3 pt-8 text-muted">
-        <p>まだお気に入りがありません。</p>
-        <p className="flex items-center gap-1.5 text-sm">
-          曲・アルバム・アーティストの
-          <Icon name="heart" className="size-4" />
-          を押すと、ここに集まります。お気に入りは、このブラウザの中にだけ保存されます。
-        </p>
-      </div>
-    );
+    return <p className="pt-8 text-muted">まだお気に入りがありません。</p>;
   }
 
   return (
