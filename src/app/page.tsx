@@ -1,13 +1,31 @@
+import type { WebSite, WithContext } from 'schema-dts';
 import { AlbumShelf } from '@/components/album-grid';
 import { CoverCard, SHELF_ITEM } from '@/components/cover-card';
 import { FavoriteShelves } from '@/components/favorites/favorite-shelves';
+import { JsonLd } from '@/components/json-ld';
 import { Shelf } from '@/components/shelf';
 import { SongList } from '@/components/song-list';
 import { albumsByNewest, artists, coverOf, decades, popularSongs } from '@/lib/catalog';
+import { SITE_URL } from '@/lib/site';
+
+/** サイトそのものの情報と、検索結果にサイト内の検索欄を出すための案内 */
+const jsonLd: WithContext<WebSite> = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Janify',
+  url: SITE_URL,
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: `${SITE_URL}/search?q={search_term_string}`,
+    // schema-dts の型に query-input が無いので、文字列のキーで足す
+    ...{ 'query-input': 'required name=search_term_string' },
+  },
+};
 
 export default function Home() {
   return (
     <>
+      <JsonLd data={jsonLd} />
       <FavoriteShelves />
       <Shelf title="人気曲">
         <SongList songs={popularSongs(24)} columns />

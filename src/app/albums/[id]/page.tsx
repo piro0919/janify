@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import type { MusicAlbum, WithContext } from 'schema-dts';
 import { AlbumPlayer } from '@/components/album-player';
+import { JsonLd } from '@/components/json-ld';
 import { artists, coverOf, findAlbum, queueOf } from '@/lib/catalog';
+import { SITE_URL } from '@/lib/site';
 
 export function generateStaticParams() {
   return artists.flatMap((artist) => artist.albums.map((a) => ({ id: a.id })));
@@ -17,9 +20,27 @@ export default async function AlbumPage({ params }: PageProps<'/albums/[id]'>) {
   const found = findAlbum((await params).id);
   if (!found) notFound();
   const { artist, album } = found;
+  const cover = coverOf(album.tracks);
+
+  const jsonLd: WithContext<MusicAlbum> = {
+    '@context': 'https://schema.org',
+    '@type': 'MusicAlbum',
+    name: album.title,
+    url: `${SITE_URL}/albums/${album.id}`,
+    ...(cover && { image: cover }),
+    ...(album.year && { datePublished: String(album.year) }),
+    byArtist: { '@type': 'MusicGroup', name: artist.name, url: `${SITE_URL}/artists/${artist.id}` },
+    numTracks: album.tracks.length,
+    track: album.tracks.map((t, i) => ({
+      '@type': 'MusicRecording',
+      name: t.title,
+      position: i + 1,
+    })),
+  };
 
   return (
     <div className="pt-4">
+      <JsonLd data={jsonLd} />
       <p className="text-xs font-bold text-muted">アルバム</p>
       <h1 className="mt-1 text-3xl font-bold">{album.title}</h1>
       <p className="mb-6 text-muted">
@@ -33,7 +54,7 @@ export default async function AlbumPage({ params }: PageProps<'/albums/[id]'>) {
         albumTitle={album.title}
         tracks={album.tracks}
         queue={queueOf(artist, album)}
-        cover={coverOf(album.tracks)}
+        cover={cover}
       />
     </div>
   );

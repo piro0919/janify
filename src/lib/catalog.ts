@@ -6,7 +6,7 @@ import { bareTitle, songKey } from '@/lib/song';
 import { thumbOf } from '@/lib/thumb';
 
 // 正本は Notion。src/data/catalog.json は scripts/notion-export.ts が書き出したもので、手で直さない
-export type VideoKind = 'mv' | 'audio' | 'unofficial';
+type VideoKind = 'mv' | 'audio' | 'unofficial';
 export type Track = { title: string; videoId: string | null; kind: VideoKind | null };
 export type Album = { id: string; title: string; year: number | null; tracks: Track[] };
 export type Artist = { id: string; name: string; albums: Album[] };
