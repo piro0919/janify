@@ -1,5 +1,5 @@
 import type { AlbumEntry } from '@/lib/catalog';
-import { coverOf } from '@/lib/catalog';
+import { coverOf, queueOf } from '@/lib/catalog';
 import { COVER_GRID, CoverCard, SHELF_ITEM } from './cover-card';
 import { Shelf } from './shelf';
 
@@ -18,6 +18,7 @@ export function AlbumGrid({
           key={album.id}
           href={`/albums/${album.id}`}
           playing={{ albumId: album.id }}
+          play={queueOf(artist, album)[0]}
           cover={coverOf(album.tracks)}
           title={album.title}
           sub={[showArtist && artist.name, album.year && `${album.year}年`]
@@ -49,6 +50,7 @@ export function AlbumShelf({
           key={album.id}
           href={`/albums/${album.id}`}
           playing={{ albumId: album.id }}
+          play={queueOf(artist, album)[0]}
           cover={coverOf(album.tracks)}
           title={album.title}
           sub={[artist.name, album.year && `${album.year}年`].filter(Boolean).join(' ・ ')}

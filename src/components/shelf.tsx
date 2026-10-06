@@ -34,7 +34,7 @@ export function Shelf({
 
   return (
     <section className="mt-10 first:mt-4">
-      <div className="mb-4 flex items-end gap-3">
+      <div className="mb-2 flex items-end gap-3">
         <h2 className="text-xl font-bold sm:text-2xl">{title}</h2>
         <div className="ml-auto flex items-center gap-2">
           {href && (
@@ -56,7 +56,7 @@ export function Shelf({
       <div
         ref={track}
         onScroll={update}
-        className="-mx-4 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 [scrollbar-width:none] sm:-mx-8 sm:scroll-px-8 sm:px-8 [&::-webkit-scrollbar]:hidden"
+        className="-mx-4 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 py-2 [scrollbar-width:none] sm:-mx-8 sm:scroll-px-8 sm:px-8 [&::-webkit-scrollbar]:hidden"
       >
         {children}
       </div>

@@ -6,7 +6,7 @@ import type { LibraryIndex } from '@/lib/library';
 import { useFavorites } from './use-favorites';
 
 let loading: Promise<LibraryIndex> | undefined;
-const loadIndex = () =>
+const loadLibraryIndex = () =>
   (loading ??= fetch('/library-index').then((r) => r.json() as Promise<LibraryIndex>));
 
 export type LibraryAlbum = LibraryIndex['albums'][string] & { id: string };
@@ -27,7 +27,7 @@ export function useLibrary(): {
   const [index, setIndex] = useState<LibraryIndex | null>(null);
 
   useEffect(() => {
-    if (any && !index) void loadIndex().then(setIndex);
+    if (any && !index) void loadLibraryIndex().then(setIndex);
   }, [any, index]);
 
   if (!index) return { ready: !any, songs: [], albums: [], artists: [] };
