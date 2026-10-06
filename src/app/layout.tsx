@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import { Noto_Sans_JP } from 'next/font/google';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import { Header } from '@/components/header';
 import { Logo, MobileTabs, Sidebar } from '@/components/nav';
 import { PlayerProvider } from '@/components/player/player-provider';
 import { Progress } from '@/components/progress';
@@ -54,8 +55,9 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
           <PlayerProvider>
             <div className="flex min-h-dvh">
               <Sidebar />
-              <div className="flex min-w-0 flex-1 flex-col">
-                <header className="sticky top-0 z-20 flex items-center gap-4 bg-background/80 px-4 py-3 backdrop-blur-lg backdrop-saturate-150 sm:px-8">
+              {/* 画面の上部の色の背景（ambient.tsx）がヘッダーの下まで回り込むよう、この列を基準にする */}
+              <div className="relative isolate flex min-w-0 flex-1 flex-col">
+                <Header>
                   <div className="md:hidden">
                     <Logo />
                   </div>
@@ -63,7 +65,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
                   <Suspense fallback={<div className="h-10 w-full max-w-xl" />}>
                     <SearchBox />
                   </Suspense>
-                </header>
+                </Header>
                 <main className="flex-1 px-4 pb-12 sm:px-8">{children}</main>
                 <footer className="page-bottom flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line px-4 pt-6 text-sm text-muted sm:px-8">
                   <Link href="/terms" className="hover:text-foreground">
