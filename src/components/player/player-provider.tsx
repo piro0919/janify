@@ -242,11 +242,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       let pending = 0;
       const place = () => {
         pending = 0;
+        // 画面を移るとき、置き場所がページから外れたあとに一度だけ呼ばれることがある。外れた要素は
+        // 大きさ0として測られ、プレイヤーまで大きさ0になるので合わせない
+        if (!slot.isConnected) return;
         const r = slot.getBoundingClientRect();
+        if (r.width === 0) return;
         el.style.top = `${r.top}px`;
         el.style.left = `${r.left}px`;
         el.style.width = `${r.width}px`;
         el.style.height = `${r.height}px`;
+        // 次に移るときの出発点。置き場所はスクロールで動くので、合わせるたびに覚えておく
+        lastBox.current = r;
       };
       const schedule = () => {
         pending ||= requestAnimationFrame(place);
@@ -268,6 +274,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       el.style.removeProperty('left');
       el.style.removeProperty('width');
       el.style.removeProperty('height');
+      // 右下の窓は画面に固定なので、大きさが変わるのは画面の幅が変わったときだけ
+      const remember = () => {
+        lastBox.current = el.getBoundingClientRect();
+      };
+      window.addEventListener('resize', remember);
+      cleanup = () => window.removeEventListener('resize', remember);
     }
 
     const to = el.getBoundingClientRect();
@@ -287,11 +299,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     lastMode.current = mode;
     lastBox.current = to;
 
-    return () => {
-      cleanup();
-      // 次に移るときの出発点。置き場所はスクロールで動くので、離れる瞬間の位置を拾う
-      lastBox.current = el.getBoundingClientRect();
-    };
+    // 出発点は後片付けの中では測らない。後片付けが動く時点では、要素はもう次の指定に切り替わっていて、
+    // 位置の決まっていない（ページの左下の）箱を測ってしまう
+    return cleanup;
   }, [mode, slot]);
 
   // 右下のプレイヤーが本文の最後を隠さないよう、本文の下の余白を変えるための印
