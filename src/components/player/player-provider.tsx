@@ -83,8 +83,6 @@ export function usePlayer(): PlayerContext {
   return ctx;
 }
 
-type Rect = { top: number; left: number; width: number; height: number };
-
 /** 右下の窓の位置と大きさ。スマホでは下のタブと帯の上、パソコンでは帯の上 */
 const DOCK =
   'fixed right-4 bottom-[calc(7.5rem+12px)] h-[200px] w-[min(356px,calc(100vw-2rem))] md:bottom-[calc(4rem+16px)]';
@@ -113,7 +111,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // 残しておいた音量は、最初に曲を流したときに読む（サーバーでは localStorage を読めず、帯も曲を流すまで出ない）
   const [sound, setSound] = useState({ volume: 100, muted: false });
   const soundRef = useRef<{ volume: number; muted: boolean } | null>(null);
-  const [rect, setRect] = useState<Rect | null>(null);
 
   const frame = useRef<HTMLDivElement>(null);
   const player = useRef<YTPlayer | null>(null);
@@ -226,38 +223,54 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [shown, setShown] = useState<QueueItem | null>(null);
   if (current && current !== shown) setShown(current);
 
-  // アルバムの画面の置き場所に、位置と大きさを合わせる。ページの高さが変わるたびに測り直す。
-  // ResizeObserver は observe した時点でも一度呼ぶので、最初の測定もここで済む
-  useLayoutEffect(() => {
-    if (!slot) return;
-    const measure = () => {
-      const r = slot.getBoundingClientRect();
-      setRect({
-        top: r.top + window.scrollY,
-        left: r.left + window.scrollX,
-        width: r.width,
-        height: r.height,
-      });
-    };
-    const observer = new ResizeObserver(measure);
-    observer.observe(slot);
-    observer.observe(document.body);
-    window.addEventListener('resize', measure);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', measure);
-    };
-  }, [slot]);
-
   // 右下の窓と大きな置き場所を行き来するとき、元の位置と大きさから滑らかに移す（FLIP）。
   // 動かすのは見た目の transform だけで、iframe そのものは動かさない
   const lastBox = useRef<DOMRect | null>(null);
   const lastMode = useRef(mode);
+
+  // アルバムの画面では、プレイヤーを画面に固定し、置き場所の位置と大きさに合わせ続ける。
+  // 置き場所は曲目をスクロールしても上に貼り付く（sticky）ので、ページの中ではなく画面の座標で合わせる。
+  // 貼り付いているあいだは位置が変わらないので、スクロールに付いていく遅れは見えない。
+  // スクロールのたびに React を通すと全体が描き直しになるので、要素の style を直接書き換える
   useLayoutEffect(() => {
     const el = frame.current;
-    if (!el || (mode === 'slot' && !rect)) return;
-    const to = el.getBoundingClientRect();
+    if (!el) return;
     const from = lastBox.current;
+
+    let cleanup = () => {};
+    if (mode === 'slot' && slot) {
+      let pending = 0;
+      const place = () => {
+        pending = 0;
+        const r = slot.getBoundingClientRect();
+        el.style.top = `${r.top}px`;
+        el.style.left = `${r.left}px`;
+        el.style.width = `${r.width}px`;
+        el.style.height = `${r.height}px`;
+      };
+      const schedule = () => {
+        pending ||= requestAnimationFrame(place);
+      };
+      place();
+      const observer = new ResizeObserver(schedule);
+      observer.observe(slot);
+      observer.observe(document.body);
+      window.addEventListener('scroll', schedule, { passive: true });
+      window.addEventListener('resize', schedule);
+      cleanup = () => {
+        cancelAnimationFrame(pending);
+        observer.disconnect();
+        window.removeEventListener('scroll', schedule);
+        window.removeEventListener('resize', schedule);
+      };
+    } else {
+      el.style.removeProperty('top');
+      el.style.removeProperty('left');
+      el.style.removeProperty('width');
+      el.style.removeProperty('height');
+    }
+
+    const to = el.getBoundingClientRect();
     const moved = lastMode.current !== mode && lastMode.current !== 'none' && mode !== 'none';
     if (moved && from && to.width > 0 && !prefersReducedMotion()) {
       el.animate(
@@ -273,17 +286,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
     lastMode.current = mode;
     lastBox.current = to;
-  }, [mode, rect]);
 
-  // 大きな置き場所はページと一緒に流れるので、移る直前の位置を拾い続ける
-  useEffect(() => {
-    if (mode !== 'slot') return;
-    const onScroll = () => {
-      if (frame.current) lastBox.current = frame.current.getBoundingClientRect();
+    return () => {
+      cleanup();
+      // 次に移るときの出発点。置き場所はスクロールで動くので、離れる瞬間の位置を拾う
+      lastBox.current = el.getBoundingClientRect();
     };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [mode]);
+  }, [mode, slot]);
 
   // 右下のプレイヤーが本文の最後を隠さないよう、本文の下の余白を変えるための印
   useEffect(() => {
@@ -370,10 +379,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       {/* プレイヤーの上には何も重ねない（YouTube の規約）。200×200 を下回らない */}
       <div
         ref={frame}
-        style={mode === 'slot' && rect ? rect : undefined}
         className={
           mode === 'slot'
-            ? 'absolute z-10 overflow-hidden rounded-lg bg-black [&>iframe]:size-full'
+            ? 'fixed z-10 overflow-hidden rounded-lg bg-black [&>iframe]:size-full'
             : `${DOCK} ${FADE} z-30 overflow-hidden rounded-b-lg bg-black shadow-2xl shadow-black/20 dark:shadow-black/60 [&>iframe]:size-full ${mode === 'none' ? HIDDEN : ''}`
         }
       />

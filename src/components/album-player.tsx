@@ -64,11 +64,17 @@ export function AlbumPlayer({
     );
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-      <div>
+    // 曲目が長くても動画が隠れないよう、動画の側は上に貼り付ける（sticky）。
+    // パソコンでは動画と再生ボタンの列ごと、スマホでは動画だけを、ヘッダーのすぐ下に貼り付ける。
+    // スマホで動画だけを貼り付けるため、列の箱（contents）を消して、動画をこの箱の直下の子にする
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
+      <div className="contents lg:sticky lg:top-20 lg:block">
         {here ? (
-          // 共通のプレイヤーがここに重なる。中には何も置かない
-          <div ref={slot} className="aspect-video w-full rounded-lg bg-black" />
+          // 共通のプレイヤーがここに重なる（player-provider.tsx が位置を合わせる）。中には何も置かない
+          <div
+            ref={slot}
+            className="aspect-video w-full rounded-lg bg-black max-lg:sticky max-lg:top-16 max-lg:z-10"
+          />
         ) : (
           <button
             type="button"
@@ -92,7 +98,7 @@ export function AlbumPlayer({
             </span>
           </button>
         )}
-        <div className="mt-4 flex items-center gap-3">
+        <div className="flex items-center gap-3 lg:mt-4">
           <button
             type="button"
             onClick={() => (here ? toggle() : start())}
@@ -114,7 +120,7 @@ export function AlbumPlayer({
         </div>
       </div>
 
-      <ol className="self-start">
+      <ol>
         {tracks.map((track, i) => {
           const active = here && current?.videoId === track.videoId;
           return (
