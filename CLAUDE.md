@@ -19,12 +19,10 @@
 
 1. 本人に画面を触ってもらい、直したい点を聞く
 2. 「ジャニーズ」と Spotify の「〜ify」の商標を確かめる。公開前の宿題だったが、確かめないまま公開した
-3. YouTube Data API の検索の上限を増やす申請を出す（本人が出すと決めた）
-   - 申請に要る公開済みの URL・プライバシーポリシー（/privacy）・利用規約（/terms）は揃った。運営者は kk-web と表示し、本名は出さない
-   - お問い合わせの窓口は Google フォーム（piro.haniwa@gmail.com の持ち物）。回答が来るとメールで届く。URL は `src/lib/site.ts`、全ページのフッターからリンクしている
-     - 回答用: https://docs.google.com/forms/d/e/1FAIpQLSdyxxT4dmq7nkVL-CDh76Oye78Yvd6knPGVmbJZh-a2uYRh1g/viewform
-     - 編集用: https://docs.google.com/forms/d/1mpwA-1ttj88JwtYG3NwJXN0I0q08RS1EX9rodfwgGhA/edit
-     - X のアカウントを出さないためにフォームにした。koidamashii の「自前のフォーム→DB→毎朝 Issue」は、Janify のリポジトリが公開で DB も無いので見送った
+3. YouTube Data API の上限を増やす申請の返事を待つ。2026-10-07 に送信済み
+   - 求めたのは、1日 110,000 単位。うち search.list は 100,000 単位で、1日1,000回にあたる。根拠は、残り約3,600曲を4日ほどで検索し終えること
+   - 申請者は個人ユーザー、組織名は kk-web、連絡先は piro.haniwa@gmail.com。返事はこのメールに来る
+   - 検索は枠切れまで回る作りなので、通ってもスクリプトは直さなくてよい
    - フォーム: https://support.google.com/youtube/contact/yt_api_form
 4. 非公式の検索が進んだら、定期的に Notion へ反映して書き出す:
 
