@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Noto_Sans_JP } from "next/font/google";
 import Link from "next/link";
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </Link>
         </header>
         <main className="flex-1 px-4 pb-16 sm:px-8">{children}</main>
+        <Analytics />
       </body>
     </html>
   );
