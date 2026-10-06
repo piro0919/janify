@@ -14,7 +14,8 @@
     "youtube:videos": "tsx --env-file-if-exists=.env.local scripts/videos.ts",
     "youtube:match": "tsx scripts/match.ts",
     "notion:videos": "tsx --env-file-if-exists=.env.local scripts/notion-videos.ts",
-    "notion:export": "tsx --env-file-if-exists=.env.local scripts/notion-export.ts"
+    "notion:export": "tsx --env-file-if-exists=.env.local scripts/notion-export.ts",
+    "youtube:unofficial": "tsx --env-file-if-exists=.env.local scripts/unofficial.ts"
   },
   "dependencies": {
     "next": "16.3.8",
