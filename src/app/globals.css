@@ -35,7 +35,7 @@ body {
 
 /*
  * 画面の下に出したままのもの（スマホのタブ・操作の帯・右下のプレイヤー）が本文の最後を隠さないよう、
- * 本文の下に同じだけ余白を足す。印は PlayerProvider が付ける
+ * 本文の下に同じだけ余白を足す（右下の窓は、高さ 200 の動画と上の帯 2.25rem）。印は PlayerProvider が付ける
  */
 .page-bottom {
   padding-bottom: calc(3.5rem + 2rem);
@@ -44,7 +44,7 @@ html[data-player='slot'] .page-bottom {
   padding-bottom: calc(3.5rem + 4rem + 2rem);
 }
 html[data-player='dock'] .page-bottom {
-  padding-bottom: calc(3.5rem + 4rem + 200px + 2rem);
+  padding-bottom: calc(3.5rem + 4rem + 200px + 2.25rem + 2rem);
 }
 @media (min-width: 48rem) {
   .page-bottom {
@@ -54,6 +54,6 @@ html[data-player='dock'] .page-bottom {
     padding-bottom: calc(4rem + 2rem);
   }
   html[data-player='dock'] .page-bottom {
-    padding-bottom: calc(4rem + 200px + 2rem);
+    padding-bottom: calc(4rem + 200px + 2.25rem + 2rem);
   }
 }

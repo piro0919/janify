@@ -11,7 +11,9 @@ import {
   useRef,
   useState,
 } from 'react';
+import Link from 'next/link';
 import type { QueueItem } from '@/lib/catalog';
+import { Icon } from '../icon';
 import { PlayerBar } from './player-bar';
 import { loadYouTubeApi, type YTPlayer } from './youtube';
 
@@ -132,6 +134,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id);
   }, [playing]);
 
+  const current = queue[index] ?? null;
   const mode = queue.length === 0 ? 'none' : slot ? 'slot' : 'dock';
 
   // アルバムの画面の置き場所に、位置と大きさを合わせる。ページの高さが変わるたびに測り直す。
@@ -166,7 +169,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     () => ({
       queue,
       index,
-      current: queue[index] ?? null,
+      current,
       playing,
       playQueue: load,
       toggle: () => (playing ? player.current?.pauseVideo() : player.current?.playVideo()),
@@ -179,12 +182,29 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       time,
       setSlot,
     }),
-    [queue, index, playing, load, step, close, time],
+    [queue, index, current, playing, load, step, close, time],
   );
 
   return (
     <Context value={value}>
       {children}
+      {/*
+        右下の窓の上に付ける帯。押すと曲の入ったアルバムの画面に移り、そこで大きく出る。
+        窓の中は YouTube のプレイヤーで、押すと YouTube 側の操作になるので、入口は窓の外に置く
+      */}
+      {mode === 'dock' && current && (
+        <Link
+          href={`/albums/${current.albumId}`}
+          className="fixed right-4 bottom-[calc(7.5rem+12px+200px)] z-30 flex h-9 w-[min(356px,calc(100vw-2rem))] items-center gap-2 rounded-t-lg bg-bar px-3 text-xs text-muted hover:text-foreground md:bottom-[calc(4rem+16px+200px)]"
+        >
+          <span className="min-w-0 flex-1 truncate">
+            <span className="font-bold text-foreground">{current.title}</span>
+            {' ・ '}
+            {current.albumTitle}
+          </span>
+          <Icon name="expand" className="size-4 shrink-0" />
+        </Link>
+      )}
       {/* プレイヤーの上には何も重ねない（YouTube の規約）。200×200 を下回らない */}
       <div
         ref={frame}
@@ -193,7 +213,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           mode === 'none'
             ? 'hidden'
             : mode === 'dock'
-              ? 'fixed right-4 bottom-[calc(7.5rem+12px)] z-30 h-[200px] w-[min(356px,calc(100vw-2rem))] overflow-hidden rounded-lg bg-black shadow-2xl shadow-black/60 md:bottom-[calc(4rem+16px)] [&>iframe]:size-full'
+              ? 'fixed right-4 bottom-[calc(7.5rem+12px)] z-30 h-[200px] w-[min(356px,calc(100vw-2rem))] overflow-hidden rounded-b-lg bg-black shadow-2xl shadow-black/60 md:bottom-[calc(4rem+16px)] [&>iframe]:size-full'
               : 'absolute z-10 overflow-hidden rounded-lg bg-black [&>iframe]:size-full'
         }
       />
