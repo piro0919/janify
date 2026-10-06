@@ -23,7 +23,8 @@
     "notion:export": "tsx --env-file-if-exists=.env.local scripts/notion-export.ts",
     "youtube:unofficial": "tsx --env-file-if-exists=.env.local scripts/unofficial.ts",
     "test": "vitest run",
-    "knip": "knip"
+    "knip": "knip",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@bprogress/next": "^3.2.12",

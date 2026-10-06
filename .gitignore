@@ -43,3 +43,9 @@ next-env.d.ts
 
 # Playwright MCP の撮影や記録
 .playwright-mcp/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
