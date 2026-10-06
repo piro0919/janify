@@ -142,7 +142,8 @@ function now(time: PlaybackTime, playing: boolean): number {
 
 /**
  * 再生位置の線。時刻は 0.5 秒おきにしか拾えないので、間は毎フレーム補って描く。
- * 描き直しは React を通さず、要素の幅を直接変える
+ * 描き直しは React を通さず、要素の幅とつまみの位置を直接変える。
+ * 押した位置へ飛び、つまみをドラッグすると離したところへ飛ぶ。キーボードの左右で 5 秒ずつ動かせる
  */
 function Progress({
   time,
@@ -154,40 +155,85 @@ function Progress({
   onSeek: (seconds: number) => void;
 }) {
   const fill = useRef<HTMLSpanElement>(null);
+  const knob = useRef<HTMLSpanElement>(null);
+  // ドラッグ中は、再生の進みではなく指の位置を描く
+  const dragging = useRef<number | null>(null);
+
+  const paint = (ratio: number) => {
+    const r = Math.min(1, Math.max(0, ratio));
+    // Tailwind の scale-x-0 は transform ではなく scale を使うので、こちらも scale で上書きする
+    if (fill.current) fill.current.style.scale = `${r} 1`;
+    if (knob.current) knob.current.style.left = `${r * 100}%`;
+  };
 
   useEffect(() => {
     let id = 0;
     const draw = () => {
-      const ratio = time.duration > 0 ? now(time, playing) / time.duration : 0;
-      if (fill.current) fill.current.style.transform = `scaleX(${ratio})`;
+      if (dragging.current === null) {
+        paint(time.duration > 0 ? now(time, playing) / time.duration : 0);
+      }
       if (playing) id = requestAnimationFrame(draw);
     };
     draw();
     return () => cancelAnimationFrame(id);
   }, [time, playing]);
 
+  const ratioAt = (el: HTMLElement, clientX: number) => {
+    const r = el.getBoundingClientRect();
+    return Math.min(1, Math.max(0, (clientX - r.left) / r.width));
+  };
+  const current = now(time, playing);
+
   return (
-    <button
-      type="button"
+    <div
+      role="slider"
+      tabIndex={0}
       aria-label="再生位置"
-      onClick={(e) => {
-        const r = e.currentTarget.getBoundingClientRect();
-        onSeek(((e.clientX - r.left) / r.width) * time.duration);
+      aria-valuemin={0}
+      aria-valuemax={Math.round(time.duration)}
+      aria-valuenow={Math.round(current)}
+      aria-valuetext={`${clock(current)} / ${clock(time.duration)}`}
+      onPointerDown={(e) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        dragging.current = ratioAt(e.currentTarget, e.clientX);
+        paint(dragging.current);
       }}
-      className="group absolute inset-x-0 -top-1.5 h-3 cursor-pointer"
+      onPointerMove={(e) => {
+        if (dragging.current === null) return;
+        dragging.current = ratioAt(e.currentTarget, e.clientX);
+        paint(dragging.current);
+      }}
+      onPointerUp={(e) => {
+        if (dragging.current === null) return;
+        onSeek(ratioAt(e.currentTarget, e.clientX) * time.duration);
+        dragging.current = null;
+      }}
+      onPointerCancel={() => {
+        dragging.current = null;
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'ArrowRight') onSeek(Math.min(time.duration, current + 5));
+        if (e.key === 'ArrowLeft') onSeek(Math.max(0, current - 5));
+      }}
+      // 当たり判定は見た目の線より広くとる。線は帯の上の縁に重ねる
+      className="group absolute inset-x-0 -top-2 h-4 cursor-pointer touch-none outline-none"
     >
-      <span className="absolute inset-x-0 top-1 h-0.5 bg-line transition-[height] group-hover:h-1" />
+      <span className="absolute inset-x-0 top-1.5 h-1 bg-line transition-[height,top] duration-150 group-hover:top-[5px] group-hover:h-1.5" />
       <span
         ref={fill}
-        className="absolute inset-x-0 top-1 h-0.5 origin-left scale-x-0 bg-accent transition-[height] group-hover:h-1"
+        className="absolute inset-x-0 top-1.5 h-1 origin-left scale-x-0 bg-accent transition-[height,top] duration-150 group-hover:top-[5px] group-hover:h-1.5"
       />
-    </button>
+      <span
+        ref={knob}
+        className="absolute top-2 size-3 -translate-1/2 scale-0 rounded-full bg-accent shadow transition-[scale] duration-150 group-hover:scale-100 group-focus-visible:scale-100 group-active:scale-100"
+      />
+    </div>
   );
 }
 
 function Clock({ time, playing }: { time: PlaybackTime; playing: boolean }) {
   return (
-    <span className="hidden w-24 text-xs tabular-nums text-muted lg:block">
+    <span className="hidden w-24 shrink-0 text-xs tabular-nums text-muted md:block">
       {clock(now(time, playing))} / {clock(time.duration)}
     </span>
   );
