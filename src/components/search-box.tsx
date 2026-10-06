@@ -60,7 +60,7 @@ export function SearchBox() {
           }}
           placeholder="曲、アルバム、アーティストを検索"
           aria-label="検索"
-          className="h-10 w-full rounded-lg border border-line bg-surface pr-3 pl-10 text-sm placeholder:text-muted focus:border-muted focus:outline-none"
+          className="h-10 w-full rounded-lg border border-foreground/10 bg-foreground/8 pr-3 pl-10 text-sm placeholder:text-muted focus:border-foreground/30 focus:outline-none"
         />
       </form>
     </search>

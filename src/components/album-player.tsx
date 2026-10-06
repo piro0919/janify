@@ -132,7 +132,7 @@ export function AlbumPlayer({
             <li
               key={i}
               className={`group flex items-center rounded-md pr-1 transition-colors duration-150 ${
-                active ? 'bg-surface' : track.videoId ? 'hover:bg-surface' : ''
+                active ? 'bg-foreground/10' : track.videoId ? 'hover:bg-foreground/8' : ''
               }`}
             >
               <button

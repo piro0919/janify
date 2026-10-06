@@ -34,7 +34,7 @@ export function SongList({ songs, columns }: { songs: QueueItem[]; columns?: boo
         return (
           <div
             key={`${song.albumId}:${song.videoId}`}
-            className={`group flex min-w-0 snap-start items-center rounded-md pr-1 transition-colors duration-150 hover:bg-surface ${active ? 'bg-surface' : ''}`}
+            className={`group flex min-w-0 snap-start items-center rounded-md pr-1 transition-colors duration-150 hover:bg-foreground/8 ${active ? 'bg-foreground/10' : ''}`}
           >
             <button
               type="button"

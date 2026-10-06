@@ -25,11 +25,14 @@ export function Logo() {
   );
 }
 
-/** パソコンの幅で左に置くメニュー。下の帯が出ているあいだは、一番下の「設定」が隠れないよう余白を足す */
+/**
+ * パソコンの幅で左に置くメニュー。半透明にして、アルバムやアーティストの画面の色の背景を透かし、画面全体を一つの色合いにする。
+ * 下の帯が出ているあいだは、一番下の「設定」が隠れないよう余白を足す
+ */
 export function Sidebar() {
   const active = useActive();
   return (
-    <nav className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-1 border-r border-line bg-sidebar px-3 pt-4 transition-[padding] duration-300 md:flex [html[data-player=dock]_&]:pb-16 [html[data-player=slot]_&]:pb-16">
+    <nav className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-1 border-r border-line/60 bg-sidebar/60 px-3 pt-4 backdrop-blur-lg backdrop-saturate-150 transition-[padding] duration-300 md:flex [html[data-player=dock]_&]:pb-16 [html[data-player=slot]_&]:pb-16">
       <div className="mb-5 px-3">
         <Logo />
       </div>
@@ -38,7 +41,9 @@ export function Sidebar() {
           key={item.href}
           href={item.href}
           className={`flex items-center gap-4 rounded-lg px-3 py-2.5 text-sm font-bold transition-colors duration-150 ${
-            active(item.href) ? 'bg-surface text-foreground' : 'text-muted hover:text-foreground'
+            active(item.href)
+              ? 'bg-foreground/10 text-foreground'
+              : 'text-muted hover:text-foreground'
           }`}
         >
           <Icon name={item.icon} />
@@ -50,7 +55,9 @@ export function Sidebar() {
         <Link
           href="/settings"
           className={`flex items-center gap-4 rounded-lg px-3 py-2.5 text-sm font-bold transition-colors duration-150 ${
-            active('/settings') ? 'bg-surface text-foreground' : 'text-muted hover:text-foreground'
+            active('/settings')
+              ? 'bg-foreground/10 text-foreground'
+              : 'text-muted hover:text-foreground'
           }`}
         >
           <Icon name="settings" />

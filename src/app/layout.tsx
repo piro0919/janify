@@ -53,10 +53,13 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       <body className="min-h-full font-sans">
         <Progress>
           <PlayerProvider>
-            <div className="flex min-h-dvh">
+            {/*
+              画面の上部の色の背景（ambient.tsx）が、ヘッダーの下とサイドバーの後ろまで回り込むよう、
+              画面全体のこの枠を基準にする
+            */}
+            <div className="relative isolate flex min-h-dvh">
               <Sidebar />
-              {/* 画面の上部の色の背景（ambient.tsx）がヘッダーの下まで回り込むよう、この列を基準にする */}
-              <div className="relative isolate flex min-w-0 flex-1 flex-col">
+              <div className="flex min-w-0 flex-1 flex-col">
                 <Header>
                   <div className="md:hidden">
                     <Logo />

@@ -40,7 +40,7 @@ export function Shelf({
           {href && (
             <Link
               href={href}
-              className="rounded-full border border-line px-3 py-1 text-xs font-bold text-muted hover:bg-surface hover:text-foreground"
+              className="rounded-full border border-line px-3 py-1 text-xs font-bold text-muted hover:bg-foreground/8 hover:text-foreground"
             >
               すべて表示
             </Link>
@@ -82,7 +82,7 @@ function ArrowButton({
       disabled={disabled}
       {...NO_RESTORE}
       onClick={onClick}
-      className="hidden size-8 place-items-center rounded-full border border-line text-foreground transition-[background-color,scale] duration-150 ease-out hover:bg-surface active:scale-90 disabled:opacity-30 disabled:hover:bg-transparent sm:grid"
+      className="hidden size-8 place-items-center rounded-full border border-line text-foreground transition-[background-color,scale] duration-150 ease-out hover:bg-foreground/8 active:scale-90 disabled:opacity-30 disabled:hover:bg-transparent sm:grid"
     >
       {children}
     </button>
