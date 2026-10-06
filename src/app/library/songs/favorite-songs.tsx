@@ -112,7 +112,7 @@ export function FavoriteSongs() {
                   lifted
                     ? 'bg-foreground/15 shadow-lg'
                     : active
-                      ? 'bg-foreground/10'
+                      ? 'bg-sidebar/60'
                       : 'hover:bg-foreground/8'
                 } ${gone ? 'opacity-50' : ''}`}
               >
@@ -154,7 +154,7 @@ export function FavoriteSongs() {
                   disabled={gone}
                   onClick={() => play(song)}
                   className={`flex min-w-0 flex-1 items-center gap-3 py-1.5 pr-2 text-left ${
-                    active ? 'text-accent' : ''
+                    active ? 'font-bold' : ''
                   }`}
                 >
                   <span className="flex w-6 shrink-0 justify-end text-sm tabular-nums text-muted">

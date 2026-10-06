@@ -56,7 +56,7 @@ export function SongList({
         return (
           <div
             key={`${song.albumId}:${song.videoId}`}
-            className={`group flex min-w-0 snap-start items-center rounded-md pr-1 transition-[background-color,opacity] duration-150 hover:bg-foreground/8 ${active ? 'bg-foreground/10' : ''} ${gone ? 'opacity-50' : ''}`}
+            className={`group flex min-w-0 snap-start items-center rounded-md pr-1 transition-[background-color,opacity] duration-150 ${active ? 'bg-sidebar/60' : 'hover:bg-foreground/8'} ${gone ? 'opacity-50' : ''}`}
           >
             <button
               type="button"
@@ -82,9 +82,7 @@ export function SongList({
                 className="aspect-video shrink-0 rounded"
               />
               <span className="min-w-0">
-                <span
-                  className={`flex items-center gap-1.5 text-sm font-bold ${active ? 'text-accent' : ''}`}
-                >
+                <span className="flex items-center gap-1.5 text-sm font-bold">
                   <span className="truncate">{song.title}</span>
                   {active && <Bars playing={playing} />}
                 </span>

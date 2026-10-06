@@ -95,7 +95,7 @@ export function AlbumPlayer({
             <li
               key={i}
               className={`group flex items-center rounded-md pr-1 transition-colors duration-150 ${
-                active ? 'bg-foreground/10' : track.videoId ? 'hover:bg-foreground/8' : ''
+                active ? 'bg-sidebar/60' : track.videoId ? 'hover:bg-foreground/8' : ''
               }`}
             >
               <button
@@ -109,7 +109,7 @@ export function AlbumPlayer({
                 }
                 onClick={() => track.videoId && start(track.videoId)}
                 className={`flex min-w-0 flex-1 items-center gap-4 px-3 py-2.5 text-left ${
-                  active ? 'text-accent' : ''
+                  active ? 'font-bold' : ''
                 } disabled:cursor-default disabled:text-muted/50`}
               >
                 <span className="flex w-6 shrink-0 justify-end text-sm tabular-nums text-muted">
