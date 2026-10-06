@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 import { type QueueItem, thumbOf } from '@/lib/catalog';
+import { songKeyOf } from '@/lib/library';
 import { FadeImage } from '../fade-image';
+import { HeartButton } from '../favorites/heart-button';
 import { Icon } from '../icon';
 import { type PlaybackTime, usePlayer } from './player-provider';
 
@@ -76,6 +78,12 @@ export function PlayerBar({ item, open }: { item: QueueItem | null; open: boolea
                 )}
               </p>
             </div>
+            <HeartButton
+              kind="songs"
+              itemKey={songKeyOf(item)}
+              label={item.title}
+              className="size-9"
+            />
           </div>
         ) : (
           <div className="flex-1" />

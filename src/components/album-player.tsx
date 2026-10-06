@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from 'react';
 import type { QueueItem, Track } from '@/lib/catalog';
+import { songKeyOf } from '@/lib/library';
 import { FadeImage } from './fade-image';
+import { HeartButton } from './favorites/heart-button';
 import { Icon } from './icon';
 import { Bars } from './now-playing';
 import { usePlayer } from './player/player-provider';
@@ -14,11 +16,13 @@ import { usePlayer } from './player/player-provider';
  */
 export function AlbumPlayer({
   albumId,
+  albumTitle,
   tracks,
   queue,
   cover,
 }: {
   albumId: string;
+  albumTitle: string;
   tracks: Track[];
   queue: QueueItem[];
   cover: string | null;
@@ -82,6 +86,13 @@ export function AlbumPlayer({
             <Icon name={here && playing ? 'pause' : 'play'} className="size-5" />
             {here && playing ? '一時停止' : '再生'}
           </button>
+          <HeartButton
+            kind="albums"
+            itemKey={albumId}
+            label={albumTitle}
+            className="size-10"
+            size="size-6"
+          />
           <span className="text-sm text-muted">
             {queue.length} 曲{queue.length < tracks.length && `（全 ${tracks.length} 曲）`}
           </span>
@@ -92,7 +103,12 @@ export function AlbumPlayer({
         {tracks.map((track, i) => {
           const active = here && current?.videoId === track.videoId;
           return (
-            <li key={i}>
+            <li
+              key={i}
+              className={`group flex items-center rounded-md pr-1 transition-colors duration-150 ${
+                active ? 'bg-surface' : track.videoId ? 'hover:bg-surface' : ''
+              }`}
+            >
               <button
                 type="button"
                 disabled={!track.videoId}
@@ -102,9 +118,9 @@ export function AlbumPlayer({
                     : 'この曲は YouTube で動画が見つかっていないため、再生できません'
                 }
                 onClick={() => track.videoId && start(track.videoId)}
-                className={`flex w-full items-center gap-4 rounded-md px-3 py-2.5 text-left transition-colors duration-150 ${
-                  active ? 'bg-surface text-accent' : 'hover:bg-surface'
-                } disabled:cursor-default disabled:text-muted/50 disabled:hover:bg-transparent`}
+                className={`flex min-w-0 flex-1 items-center gap-4 px-3 py-2.5 text-left ${
+                  active ? 'text-accent' : ''
+                } disabled:cursor-default disabled:text-muted/50`}
               >
                 <span className="flex w-6 shrink-0 justify-end text-sm tabular-nums text-muted">
                   {active ? <Bars playing={playing} /> : i + 1}
@@ -112,6 +128,15 @@ export function AlbumPlayer({
                 <span className="truncate">{track.title}</span>
                 {!track.videoId && <span className="ml-auto shrink-0 text-xs">動画なし</span>}
               </button>
+              {track.videoId && (
+                <HeartButton
+                  kind="songs"
+                  itemKey={songKeyOf({ albumId, title: track.title })}
+                  label={track.title}
+                  className="size-8"
+                  quiet
+                />
+              )}
             </li>
           );
         })}

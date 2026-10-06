@@ -1,5 +1,6 @@
 import { AlbumShelf } from '@/components/album-grid';
 import { CoverCard, SHELF_ITEM } from '@/components/cover-card';
+import { FavoriteShelves } from '@/components/favorites/favorite-shelves';
 import { Shelf } from '@/components/shelf';
 import { SongList } from '@/components/song-list';
 import { albumsByNewest, artists, coverOf, decades, popularSongs } from '@/lib/catalog';
@@ -7,6 +8,7 @@ import { albumsByNewest, artists, coverOf, decades, popularSongs } from '@/lib/c
 export default function Home() {
   return (
     <>
+      <FavoriteShelves />
       <Shelf title="人気曲">
         <SongList songs={popularSongs(24)} columns />
       </Shelf>

@@ -105,6 +105,17 @@ describe('人気曲と年代', () => {
     }
   });
 
+  // お気に入りの曲の鍵は「アルバムの id と曲名」。同じアルバムに同じ曲名があると、鍵が重なる
+  it('同じアルバムの中で、再生できる曲の曲名が重ならない', () => {
+    const bad = artists.flatMap((a) =>
+      a.albums.filter((al) => {
+        const titles = al.tracks.filter((t) => t.videoId).map((t) => t.title);
+        return new Set(titles).size !== titles.length;
+      }),
+    );
+    expect(bad.map((al) => al.title)).toEqual([]);
+  });
+
   it('新しい順の一覧には、全アルバムが入る', () => {
     expect(albumsByNewest.length).toBe(artists.flatMap((a) => a.albums).length);
   });

@@ -9,6 +9,7 @@ const ITEMS: { href: string; label: string; icon: IconName }[] = [
   { href: '/artists', label: 'アーティスト', icon: 'artist' },
   { href: '/albums', label: 'アルバム', icon: 'album' },
   { href: '/decades', label: '年代', icon: 'decade' },
+  { href: '/library', label: 'ライブラリ', icon: 'library' },
 ];
 
 function useActive() {
@@ -52,7 +53,7 @@ export function Sidebar() {
 export function MobileTabs() {
   const active = useActive();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 grid h-14 grid-cols-4 border-t border-line bg-sidebar md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 grid h-14 grid-cols-5 border-t border-line bg-sidebar md:hidden">
       {ITEMS.map((item) => (
         <Link
           key={item.href}

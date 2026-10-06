@@ -30,6 +30,7 @@ export default async function AlbumPage({ params }: PageProps<'/albums/[id]'>) {
       </p>
       <AlbumPlayer
         albumId={album.id}
+        albumTitle={album.title}
         tracks={album.tracks}
         queue={queueOf(artist, album)}
         cover={coverOf(album.tracks)}

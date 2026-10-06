@@ -46,6 +46,19 @@ body {
   }
 }
 
+/* お気に入りに入れたときのハートの弾み */
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* 動きを減らす設定の人には、出入りや移動の動きを見せない */
 @media (prefers-reduced-motion: reduce) {
   *,

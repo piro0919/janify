@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { AlbumGrid } from '@/components/album-grid';
+import { HeartButton } from '@/components/favorites/heart-button';
 import { Shelf } from '@/components/shelf';
 import { SongList } from '@/components/song-list';
 import { artists, findArtist, songsOf } from '@/lib/catalog';
@@ -23,7 +24,16 @@ export default async function ArtistPage({ params }: PageProps<'/artists/[id]'>)
 
   return (
     <>
-      <h1 className="pt-4 text-3xl font-bold">{artist.name}</h1>
+      <div className="flex items-center gap-3 pt-4">
+        <h1 className="text-3xl font-bold">{artist.name}</h1>
+        <HeartButton
+          kind="artists"
+          itemKey={artist.id}
+          label={artist.name}
+          className="size-10"
+          size="size-6"
+        />
+      </div>
       {songs.length > 0 && (
         <Shelf title="よく収録されている曲">
           <SongList songs={songs} columns />
