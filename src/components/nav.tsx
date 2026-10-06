@@ -17,10 +17,12 @@ function useActive() {
   return (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href));
 }
 
+/** ロゴ。開いたときに一度だけ、マウスを載せるともう一度、きらめきが字の上を走る（globals.css の .logo） */
 export function Logo() {
   return (
-    <Link href="/" className="text-xl font-bold tracking-tight">
-      Jani<span className="text-accent">fy</span>
+    <Link href="/" aria-label="Janify ホーム" className="logo text-2xl">
+      <span>Jani</span>
+      <span className="text-accent">fy</span>
     </Link>
   );
 }

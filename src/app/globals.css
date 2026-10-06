@@ -84,6 +84,58 @@ body {
   }
 }
 
+/*
+ * ロゴ（nav.tsx）。字ごとの色はそのままに、白く光る帯が左から右へ一度だけ走る。
+ * マウスを載せると、別の名前の動きに切り替えて、もう一度走らせる（同じ名前のままでは走り直さない）
+ */
+.logo {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+.logo > span {
+  --c: var(--foreground);
+  background: linear-gradient(
+    110deg,
+    var(--c) 40%,
+    color-mix(in oklab, var(--accent) 35%, white) 50%,
+    var(--c) 60%
+  );
+  background-size: 250% 100%;
+  background-position: -60% 0;
+  /* 色は字の箱の中にしか塗られないので、斜体で右下にはみ出す分（f や y の尾）まで箱を広げる。並びは崩さない */
+  padding: 0.05em 0.15em 0.2em 0;
+  margin-right: -0.15em;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: logo-shine 1.4s var(--ease-out) 0.3s both;
+}
+.logo > span.text-accent {
+  --c: var(--accent);
+}
+.logo:hover > span {
+  animation-name: logo-shine-again;
+}
+@keyframes logo-shine {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -60% 0;
+  }
+}
+@keyframes logo-shine-again {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -60% 0;
+  }
+}
+
 /* 画面の上部の色の背景を入れ替えるときのふわっと出る動き（ambient.tsx） */
 @keyframes fade-in {
   from {

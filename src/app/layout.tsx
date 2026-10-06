@@ -1,6 +1,6 @@
 import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
-import { Noto_Sans_JP } from 'next/font/google';
+import { Noto_Sans_JP, Playfair_Display } from 'next/font/google';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { Header } from '@/components/header';
@@ -12,6 +12,14 @@ import { themeScript } from '@/components/theme/theme-script';
 import { ThemeWatcher } from '@/components/theme/theme-watcher';
 import { CONTACT_FORM_URL, OPERATOR, SITE_URL } from '@/lib/site';
 import './globals.css';
+
+// ロゴの字。ジャニーズのロゴやコンサートの演出に多い、華やかな斜体のセリフ体。使うのは「Janify」の6文字だけ
+const playfair = Playfair_Display({
+  variable: '--font-playfair',
+  subsets: ['latin'],
+  weight: '900',
+  style: 'italic',
+});
 
 const notoSansJp = Noto_Sans_JP({
   variable: '--font-noto-sans-jp',
@@ -39,7 +47,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     // data-theme はページを描く前に themeScript が付けるので、サーバーの出力と食い違ってよい
     <html
       lang="ja"
-      className={`${notoSansJp.variable} h-full antialiased`}
+      className={`${notoSansJp.variable} ${playfair.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
