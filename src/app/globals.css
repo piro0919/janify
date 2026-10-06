@@ -1,17 +1,27 @@
 @import 'tailwindcss';
 
-/* 音楽プレイヤーらしく暗い地に固定する。YouTube Music の再生画面に寄せる */
+/*
+ * 音楽アプリらしく暗い地に固定する。特定のサービスに寄せすぎないよう、地はわずかに紫を帯びた黒、
+ * 差し色は YouTube の赤とも Amazon Music の水色とも違う薄紫にする
+ * （YouTube の規約: YouTube が作ったアプリと見分けがつきにくい見た目にしない）
+ */
 :root {
-  --background: #0f0f0f;
-  --surface: #1c1c1c;
-  --foreground: #f1f1f1;
-  --muted: #aaaaaa;
-  --accent: #ff4e45;
+  --background: #0e0d12;
+  --sidebar: #09080c;
+  --bar: #18161f;
+  --surface: #1f1d27;
+  --line: #2c2a36;
+  --foreground: #f3f2f7;
+  --muted: #a3a0b0;
+  --accent: #b69bff;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-sidebar: var(--sidebar);
+  --color-bar: var(--bar);
   --color-surface: var(--surface);
+  --color-line: var(--line);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
@@ -21,4 +31,29 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/*
+ * 画面の下に出したままのもの（スマホのタブ・操作の帯・右下のプレイヤー）が本文の最後を隠さないよう、
+ * 本文の下に同じだけ余白を足す。印は PlayerProvider が付ける
+ */
+.page-bottom {
+  padding-bottom: calc(3.5rem + 2rem);
+}
+html[data-player='slot'] .page-bottom {
+  padding-bottom: calc(3.5rem + 4rem + 2rem);
+}
+html[data-player='dock'] .page-bottom {
+  padding-bottom: calc(3.5rem + 4rem + 200px + 2rem);
+}
+@media (min-width: 48rem) {
+  .page-bottom {
+    padding-bottom: 2rem;
+  }
+  html[data-player='slot'] .page-bottom {
+    padding-bottom: calc(4rem + 2rem);
+  }
+  html[data-player='dock'] .page-bottom {
+    padding-bottom: calc(4rem + 200px + 2rem);
+  }
 }

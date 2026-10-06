@@ -2,6 +2,10 @@ import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import { Noto_Sans_JP } from 'next/font/google';
 import Link from 'next/link';
+import { Suspense } from 'react';
+import { Logo, MobileTabs, Sidebar } from '@/components/nav';
+import { PlayerProvider } from '@/components/player/player-provider';
+import { SearchBox } from '@/components/search-box';
 import { CONTACT_FORM_URL, OPERATOR, SITE_URL } from '@/lib/site';
 import './globals.css';
 
@@ -21,30 +25,42 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="ja" className={`${notoSansJp.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col font-sans">
-        <header className="sticky top-0 z-10 bg-background/90 px-4 py-3 backdrop-blur sm:px-8">
-          <Link href="/" className="text-xl font-bold tracking-tight">
-            Jani<span className="text-accent">fy</span>
-          </Link>
-        </header>
-        <main className="flex-1 px-4 pb-16 sm:px-8">{children}</main>
-        <footer className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-surface px-4 py-6 text-sm text-muted sm:px-8">
-          <Link href="/terms" className="hover:text-foreground">
-            利用規約
-          </Link>
-          <Link href="/privacy" className="hover:text-foreground">
-            プライバシーポリシー
-          </Link>
-          <a
-            href={CONTACT_FORM_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-foreground"
-          >
-            お問い合わせ
-          </a>
-          <span className="ml-auto">© {OPERATOR}</span>
-        </footer>
+      <body className="min-h-full font-sans">
+        <PlayerProvider>
+          <div className="flex min-h-dvh">
+            <Sidebar />
+            <div className="flex min-w-0 flex-1 flex-col">
+              <header className="sticky top-0 z-20 flex items-center gap-4 bg-background/90 px-4 py-3 backdrop-blur sm:px-8">
+                <div className="md:hidden">
+                  <Logo />
+                </div>
+                {/* 検索欄は URL の語を読むので、静的に書き出す画面では Suspense で包む */}
+                <Suspense fallback={<div className="h-10 w-full max-w-xl" />}>
+                  <SearchBox />
+                </Suspense>
+              </header>
+              <main className="flex-1 px-4 pb-12 sm:px-8">{children}</main>
+              <footer className="page-bottom flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line px-4 pt-6 text-sm text-muted sm:px-8">
+                <Link href="/terms" className="hover:text-foreground">
+                  利用規約
+                </Link>
+                <Link href="/privacy" className="hover:text-foreground">
+                  プライバシーポリシー
+                </Link>
+                <a
+                  href={CONTACT_FORM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground"
+                >
+                  お問い合わせ
+                </a>
+                <span className="ml-auto">© {OPERATOR}</span>
+              </footer>
+            </div>
+          </div>
+          <MobileTabs />
+        </PlayerProvider>
         <Analytics />
       </body>
     </html>

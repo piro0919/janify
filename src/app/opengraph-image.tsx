@@ -22,17 +22,17 @@ export default function OpengraphImage() {
         alignItems: 'center',
         gap: 48,
         padding: '0 80px',
-        background: '#0f0f0f',
-        color: '#f1f1f1',
+        background: '#0e0d12',
+        color: '#f3f2f7',
         fontFamily: 'Noto Sans JP',
       }}
     >
       <img src={icon} width={260} height={260} alt="" />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div style={{ display: 'flex', fontSize: 120, letterSpacing: -4 }}>
-          Jani<span style={{ color: '#ff4e45' }}>fy</span>
+          Jani<span style={{ color: '#b69bff' }}>fy</span>
         </div>
-        <div style={{ fontSize: 34, color: '#aaaaaa' }}>
+        <div style={{ fontSize: 34, color: '#a3a0b0' }}>
           旧ジャニーズの曲を、アルバムごとに聴ける。
         </div>
       </div>

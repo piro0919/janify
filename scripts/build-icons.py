@@ -1,6 +1,6 @@
 """アイコンを描いて、各サイズに書き出す。`python3 scripts/build-icons.py`
 
-暗い地に赤い再生の三角と、白いきらめき（四芒星）を1つ。色は globals.css と同じ。
+暗い地に薄紫の再生の三角と、白いきらめき（四芒星）を1つ。色は globals.css と同じ。
 4倍の大きさで描いてから縮め、縁を滑らかにする。要るのは Pillow だけ
 """
 
@@ -9,9 +9,9 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
-BACKGROUND = (0x0F, 0x0F, 0x0F)
-ACCENT = (0xFF, 0x4E, 0x45)
-FOREGROUND = (0xF1, 0xF1, 0xF1)
+BACKGROUND = (0x0E, 0x0D, 0x12)
+ACCENT = (0xB6, 0x9B, 0xFF)
+FOREGROUND = (0xF3, 0xF2, 0xF7)
 
 SIZE = 1024
 SCALE = 4

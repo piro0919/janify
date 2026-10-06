@@ -13,7 +13,7 @@ export default function NotFound() {
         href="/"
         className="rounded-full bg-foreground px-5 py-2 text-sm font-bold text-background hover:bg-muted"
       >
-        アーティスト一覧へ
+        ホームへ
       </Link>
     </div>
   );
