@@ -25,7 +25,7 @@ export function CoverCard({
 }) {
   return (
     <Link href={href} className={`group block ${className}`}>
-      <div className="relative aspect-video overflow-hidden rounded-md bg-surface transition-[translate,box-shadow] duration-200 ease-out group-hover:-translate-y-0.5 group-hover:shadow-lg group-hover:shadow-black/40 group-active:translate-y-0">
+      <div className="relative aspect-video overflow-hidden rounded-md bg-surface ring-foreground/30 transition-shadow duration-150 group-hover:ring-2 group-focus-visible:ring-2">
         {cover && (
           <FadeImage
             src={cover}
