@@ -80,7 +80,7 @@ function ArrowButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="hidden size-8 place-items-center rounded-full border border-line text-foreground hover:bg-surface disabled:opacity-30 disabled:hover:bg-transparent sm:grid"
+      className="hidden size-8 place-items-center rounded-full border border-line text-foreground transition-[background-color,scale] duration-150 ease-out hover:bg-surface active:scale-90 disabled:opacity-30 disabled:hover:bg-transparent sm:grid"
     >
       {children}
     </button>

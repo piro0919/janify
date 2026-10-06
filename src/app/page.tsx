@@ -18,6 +18,7 @@ export default function Home() {
           <CoverCard
             key={artist.id}
             href={`/artists/${artist.id}`}
+            playing={{ artistId: artist.id }}
             cover={coverOf(artist.albums.flatMap((a) => a.tracks).toReversed())}
             title={artist.name}
             sub={`アルバム ${artist.albums.length} 枚`}

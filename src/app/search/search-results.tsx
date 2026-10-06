@@ -45,6 +45,7 @@ export function SearchResults() {
               <CoverCard
                 key={a.id}
                 href={`/artists/${a.id}`}
+                playing={{ artistId: a.id }}
                 cover={a.cover}
                 title={a.name}
                 sub={`アルバム ${a.albums} 枚`}
@@ -60,6 +61,7 @@ export function SearchResults() {
               <CoverCard
                 key={a.id}
                 href={`/albums/${a.id}`}
+                playing={{ albumId: a.id }}
                 cover={a.cover}
                 title={a.title}
                 sub={[a.artistName, a.year && `${a.year}年`].filter(Boolean).join(' ・ ')}

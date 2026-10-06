@@ -17,6 +17,7 @@ export function AlbumGrid({
         <CoverCard
           key={album.id}
           href={`/albums/${album.id}`}
+          playing={{ albumId: album.id }}
           cover={coverOf(album.tracks)}
           title={album.title}
           sub={[showArtist && artist.name, album.year && `${album.year}年`]
@@ -47,6 +48,7 @@ export function AlbumShelf({
         <CoverCard
           key={album.id}
           href={`/albums/${album.id}`}
+          playing={{ albumId: album.id }}
           cover={coverOf(album.tracks)}
           title={album.title}
           sub={[artist.name, album.year && `${album.year}年`].filter(Boolean).join(' ・ ')}

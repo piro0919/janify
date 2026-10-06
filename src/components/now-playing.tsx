@@ -1,0 +1,34 @@
+'use client';
+
+import { usePlayer } from './player/player-provider';
+
+/**
+ * いま流している曲がこのアルバム・アーティストのものなら、題名の横に揺れる棒を出す。
+ * サムネイルの上には再生ボタン以外を重ねられないので（YouTube の規約）、印は文字の側に置く
+ */
+export function NowPlaying({ albumId, artistId }: { albumId?: string; artistId?: string }) {
+  const { current, playing } = usePlayer();
+  if (!current) return null;
+  if (albumId && current.albumId !== albumId) return null;
+  if (artistId && current.artistId !== artistId) return null;
+  return <Bars playing={playing} />;
+}
+
+/** 再生中の印。一時停止中は止める */
+export function Bars({ playing }: { playing: boolean }) {
+  return (
+    <span aria-label="再生中" className="inline-flex h-3 shrink-0 items-end gap-0.5">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="w-0.5 origin-bottom animate-[eq_0.9s_ease-in-out_infinite] rounded-full bg-accent"
+          style={{
+            height: '100%',
+            animationDelay: `${i * -0.3}s`,
+            animationPlayState: playing ? 'running' : 'paused',
+          }}
+        />
+      ))}
+    </span>
+  );
+}

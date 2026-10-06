@@ -1,12 +1,13 @@
 'use client';
 
-import Image from 'next/image';
 import { type QueueItem, thumbOf } from '@/lib/catalog';
+import { FadeImage } from './fade-image';
+import { Bars } from './now-playing';
 import { usePlayer } from './player/player-provider';
 
 /** 小さなサムネイルと曲名を詰めて並べる一覧。押すとこの一覧を順番待ちにして、その曲から流す */
 export function SongList({ songs, columns }: { songs: QueueItem[]; columns?: boolean }) {
-  const { current, playQueue } = usePlayer();
+  const { current, playing, playQueue } = usePlayer();
   return (
     <div
       className={
@@ -22,18 +23,23 @@ export function SongList({ songs, columns }: { songs: QueueItem[]; columns?: boo
             key={`${song.albumId}:${song.videoId}`}
             type="button"
             onClick={() => playQueue(songs, i)}
-            className={`flex min-w-0 snap-start items-center gap-3 rounded-md p-1.5 text-left hover:bg-surface ${active ? 'bg-surface' : ''}`}
+            className={`flex min-w-0 snap-start items-center gap-3 rounded-md p-1.5 text-left transition-[background-color,scale] duration-150 ease-out hover:bg-surface active:scale-[0.98] ${active ? 'bg-surface' : ''}`}
           >
-            <Image
+            <FadeImage
               src={thumbOf(song.videoId)}
               alt=""
+              // 最初の列は画面に入った時点で見えるので、遅延読み込みにしない
+              loading={i < 8 ? 'eager' : 'lazy'}
               width={85}
               height={48}
               className="aspect-video shrink-0 rounded"
             />
             <span className="min-w-0">
-              <span className={`block truncate text-sm font-bold ${active ? 'text-accent' : ''}`}>
-                {song.title}
+              <span
+                className={`flex items-center gap-1.5 text-sm font-bold ${active ? 'text-accent' : ''}`}
+              >
+                <span className="truncate">{song.title}</span>
+                {active && <Bars playing={playing} />}
               </span>
               <span className="block truncate text-xs text-muted">
                 {song.artistName} ・ {song.albumTitle}

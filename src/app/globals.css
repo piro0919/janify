@@ -14,6 +14,8 @@
   --foreground: #f3f2f7;
   --muted: #a3a0b0;
   --accent: #b69bff;
+  /* 動きの曲線。src/lib/motion.ts の EASE_OUT と同じ値 */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @theme inline {
@@ -31,6 +33,27 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/* 再生中の印の棒の伸び縮み */
+@keyframes eq {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+/* 動きを減らす設定の人には、出入りや移動の動きを見せない */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0s !important;
+    animation-duration: 0s !important;
+  }
 }
 
 /*

@@ -36,7 +36,7 @@ export function Sidebar() {
         <Link
           key={item.href}
           href={item.href}
-          className={`flex items-center gap-4 rounded-lg px-3 py-2.5 text-sm font-bold ${
+          className={`flex items-center gap-4 rounded-lg px-3 py-2.5 text-sm font-bold transition-colors duration-150 ${
             active(item.href) ? 'bg-surface text-foreground' : 'text-muted hover:text-foreground'
           }`}
         >

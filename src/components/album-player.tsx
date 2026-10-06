@@ -1,9 +1,10 @@
 'use client';
 
-import Image from 'next/image';
 import { useEffect, useRef } from 'react';
 import type { QueueItem, Track } from '@/lib/catalog';
+import { FadeImage } from './fade-image';
 import { Icon } from './icon';
+import { Bars } from './now-playing';
 import { usePlayer } from './player/player-provider';
 
 /**
@@ -57,16 +58,17 @@ export function AlbumPlayer({
             className="group relative block aspect-video w-full overflow-hidden rounded-lg bg-surface"
           >
             {cover && (
-              <Image
+              <FadeImage
                 src={cover}
                 alt=""
                 fill
+                loading="eager"
                 sizes="(min-width: 1024px) 60vw, 100vw"
                 className="object-cover"
               />
             )}
             {/* サムネイルの上に重ねてよいのは再生ボタンだけ（YouTube の規約） */}
-            <span className="absolute top-1/2 left-1/2 grid size-16 -translate-1/2 place-items-center rounded-full bg-accent text-background shadow-lg transition-transform group-hover:scale-105">
+            <span className="absolute top-1/2 left-1/2 grid size-16 -translate-1/2 place-items-center rounded-full bg-accent text-background shadow-lg transition-[scale] duration-200 ease-out group-hover:scale-105 group-active:scale-95">
               <Icon name="play" className="size-9" />
             </span>
           </button>
@@ -75,7 +77,7 @@ export function AlbumPlayer({
           <button
             type="button"
             onClick={() => (here ? toggle() : start())}
-            className="flex items-center gap-2 rounded-full bg-foreground py-2 pr-5 pl-4 text-sm font-bold text-background hover:opacity-90"
+            className="flex items-center gap-2 rounded-full bg-foreground py-2 pr-5 pl-4 text-sm font-bold text-background transition-[opacity,scale] duration-150 ease-out hover:opacity-90 active:scale-95"
           >
             <Icon name={here && playing ? 'pause' : 'play'} className="size-5" />
             {here && playing ? '一時停止' : '再生'}
@@ -94,15 +96,21 @@ export function AlbumPlayer({
               <button
                 type="button"
                 disabled={!track.videoId}
+                title={
+                  track.videoId
+                    ? undefined
+                    : 'この曲は YouTube で動画が見つかっていないため、再生できません'
+                }
                 onClick={() => track.videoId && start(track.videoId)}
-                className={`flex w-full items-center gap-4 rounded-md px-3 py-2.5 text-left ${
+                className={`flex w-full items-center gap-4 rounded-md px-3 py-2.5 text-left transition-colors duration-150 ${
                   active ? 'bg-surface text-accent' : 'hover:bg-surface'
                 } disabled:cursor-default disabled:text-muted/50 disabled:hover:bg-transparent`}
               >
-                <span className="w-6 shrink-0 text-right text-sm tabular-nums text-muted">
-                  {i + 1}
+                <span className="flex w-6 shrink-0 justify-end text-sm tabular-nums text-muted">
+                  {active ? <Bars playing={playing} /> : i + 1}
                 </span>
                 <span className="truncate">{track.title}</span>
+                {!track.videoId && <span className="ml-auto shrink-0 text-xs">動画なし</span>}
               </button>
             </li>
           );
