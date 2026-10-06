@@ -6,7 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "wiki:artists": "tsx scripts/artists.ts",
+    "wiki:albums": "tsx scripts/albums.ts",
+    "notion:import": "tsx --env-file-if-exists=.env.local scripts/notion-import.ts",
+    "youtube:channels": "tsx --env-file-if-exists=.env.local scripts/channels.ts",
+    "youtube:videos": "tsx --env-file-if-exists=.env.local scripts/videos.ts",
+    "youtube:match": "tsx scripts/match.ts",
+    "notion:videos": "tsx --env-file-if-exists=.env.local scripts/notion-videos.ts",
+    "notion:export": "tsx --env-file-if-exists=.env.local scripts/notion-export.ts"
   },
   "dependencies": {
     "next": "16.3.8",
@@ -21,6 +29,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   },
   "packageManager": "pnpm@11.1.2"
