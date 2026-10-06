@@ -55,7 +55,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
             <div className="flex min-h-dvh">
               <Sidebar />
               <div className="flex min-w-0 flex-1 flex-col">
-                <header className="sticky top-0 z-20 flex items-center gap-4 bg-background/90 px-4 py-3 backdrop-blur sm:px-8">
+                <header className="sticky top-0 z-20 flex items-center gap-4 bg-background/80 px-4 py-3 backdrop-blur-lg backdrop-saturate-150 sm:px-8">
                   <div className="md:hidden">
                     <Logo />
                   </div>

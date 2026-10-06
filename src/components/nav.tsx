@@ -65,7 +65,7 @@ export function Sidebar() {
 export function MobileTabs() {
   const active = useActive();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 grid h-14 grid-cols-5 border-t border-line bg-sidebar md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 grid h-14 grid-cols-5 border-t border-line bg-sidebar/80 backdrop-blur-lg backdrop-saturate-150 md:hidden">
       {ITEMS.map((item) => (
         <Link
           key={item.href}
