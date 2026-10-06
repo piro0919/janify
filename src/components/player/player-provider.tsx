@@ -299,7 +299,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         className={
           mode === 'slot'
             ? 'absolute z-10 overflow-hidden rounded-lg bg-black [&>iframe]:size-full'
-            : `${DOCK} ${FADE} z-30 overflow-hidden rounded-b-lg bg-black shadow-2xl shadow-black/60 [&>iframe]:size-full ${mode === 'none' ? HIDDEN : ''}`
+            : `${DOCK} ${FADE} z-30 overflow-hidden rounded-b-lg bg-black shadow-2xl shadow-black/20 dark:shadow-black/60 [&>iframe]:size-full ${mode === 'none' ? HIDDEN : ''}`
         }
       />
       <PlayerBar item={shown} open={mode !== 'none'} />

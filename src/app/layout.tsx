@@ -1,11 +1,13 @@
 import { Analytics } from '@vercel/analytics/next';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Noto_Sans_JP } from 'next/font/google';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { Logo, MobileTabs, Sidebar } from '@/components/nav';
 import { PlayerProvider } from '@/components/player/player-provider';
 import { SearchBox } from '@/components/search-box';
+import { themeScript } from '@/components/theme/theme-script';
+import { ThemeWatcher } from '@/components/theme/theme-watcher';
 import { CONTACT_FORM_URL, OPERATOR, SITE_URL } from '@/lib/site';
 import './globals.css';
 
@@ -22,9 +24,30 @@ export const metadata: Metadata = {
   twitter: { card: 'summary_large_image' },
 };
 
+// スマホのブラウザの枠の色。端末の設定に合わせて、地の色とそろえる
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0e0d12' },
+    { media: '(prefers-color-scheme: light)', color: '#f8f7fb' },
+  ],
+};
+
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="ja" className={`${notoSansJp.variable} h-full antialiased`}>
+    // data-theme はページを描く前に themeScript が付けるので、サーバーの出力と食い違ってよい
+    <html
+      lang="ja"
+      className={`${notoSansJp.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
+      <head>
+        {/*
+          ページを描く前に data-theme を付ける。next/script の beforeInteractive は Next.js の仕組みが
+          動き出してから実行されるので、開いた瞬間に色がちらつく。そのため素の script を置く。
+          開発中にレイアウトを描き直すと React が script タグについて警告を出すが、本番には関係しない
+        */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="min-h-full font-sans">
         <PlayerProvider>
           <div className="flex min-h-dvh">
@@ -47,6 +70,10 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
                 <Link href="/privacy" className="hover:text-foreground">
                   プライバシーポリシー
                 </Link>
+                {/* パソコンでは左のメニューにもある。スマホのタブには入れず、ここから行く */}
+                <Link href="/settings" className="hover:text-foreground">
+                  設定
+                </Link>
                 <a
                   href={CONTACT_FORM_URL}
                   target="_blank"
@@ -61,6 +88,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
           </div>
           <MobileTabs />
         </PlayerProvider>
+        <ThemeWatcher />
         <Analytics />
       </body>
     </html>

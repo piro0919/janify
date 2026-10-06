@@ -25,11 +25,11 @@ export function Logo() {
   );
 }
 
-/** パソコンの幅で左に置くメニュー */
+/** パソコンの幅で左に置くメニュー。下の帯が出ているあいだは、一番下の「設定」が隠れないよう余白を足す */
 export function Sidebar() {
   const active = useActive();
   return (
-    <nav className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-1 border-r border-line bg-sidebar px-3 pt-4 md:flex">
+    <nav className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-1 border-r border-line bg-sidebar px-3 pt-4 transition-[padding] duration-300 md:flex [html[data-player=dock]_&]:pb-16 [html[data-player=slot]_&]:pb-16">
       <div className="mb-5 px-3">
         <Logo />
       </div>
@@ -45,6 +45,18 @@ export function Sidebar() {
           {item.label}
         </Link>
       ))}
+      {/* YouTube と同じく、設定は左のメニューの下の方に置く */}
+      <div className="mt-auto border-t border-line py-3">
+        <Link
+          href="/settings"
+          className={`flex items-center gap-4 rounded-lg px-3 py-2.5 text-sm font-bold transition-colors duration-150 ${
+            active('/settings') ? 'bg-surface text-foreground' : 'text-muted hover:text-foreground'
+          }`}
+        >
+          <Icon name="settings" />
+          設定
+        </Link>
+      </div>
     </nav>
   );
 }

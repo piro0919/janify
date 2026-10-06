@@ -1,11 +1,15 @@
 @import 'tailwindcss';
 
 /*
- * 音楽アプリらしく暗い地に固定する。特定のサービスに寄せすぎないよう、地はわずかに紫を帯びた黒、
- * 差し色は YouTube の赤とも Amazon Music の水色とも違う薄紫にする
- * （YouTube の規約: YouTube が作ったアプリと見分けがつきにくい見た目にしない）
+ * 色。特定のサービスに寄せすぎないよう、暗い地はわずかに紫を帯びた黒、差し色は YouTube の赤とも
+ * Amazon Music の水色とも違う薄紫にする（YouTube の規約: YouTube が作ったアプリと見分けがつきにくい見た目にしない）。
+ *
+ * 明るい画面と暗い画面がある。どちらにするかは <html data-theme> で決まり、ページを描く前に
+ * src/components/theme/theme-script.ts が付ける（端末の設定か、本人が選んだもの）。
+ * スクリプトが動かないときは、端末の設定に合わせる
  */
-:root {
+:root,
+:root[data-theme='dark'] {
   --background: #0e0d12;
   --sidebar: #09080c;
   --bar: #18161f;
@@ -14,9 +18,43 @@
   --foreground: #f3f2f7;
   --muted: #a3a0b0;
   --accent: #b69bff;
+  color-scheme: dark;
+}
+
+/* 明るい画面の差し色は、白い地でも文字が読める濃さまで落とす */
+:root[data-theme='light'] {
+  --background: #f8f7fb;
+  --sidebar: #efedf5;
+  --bar: #ffffff;
+  --surface: #e9e6f1;
+  --line: #dad6e4;
+  --foreground: #18161f;
+  --muted: #66627a;
+  --accent: #6a47e6;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --background: #f8f7fb;
+    --sidebar: #efedf5;
+    --bar: #ffffff;
+    --surface: #e9e6f1;
+    --line: #dad6e4;
+    --foreground: #18161f;
+    --muted: #66627a;
+    --accent: #6a47e6;
+    color-scheme: light;
+  }
+}
+
+:root {
   /* 動きの曲線。src/lib/motion.ts の EASE_OUT と同じ値 */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
+
+/* dark: は暗い画面のときに効く。端末の設定ではなく data-theme を見る */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 @theme inline {
   --color-background: var(--background);
