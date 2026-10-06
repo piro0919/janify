@@ -2,7 +2,7 @@ import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import { Noto_Sans_JP } from 'next/font/google';
 import Link from 'next/link';
-import { CONTACT_FORM_URL, OPERATOR } from '@/lib/site';
+import { CONTACT_FORM_URL, OPERATOR, SITE_URL } from '@/lib/site';
 import './globals.css';
 
 const notoSansJp = Noto_Sans_JP({
@@ -12,6 +12,7 @@ const notoSansJp = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: { default: 'Janify', template: '%s | Janify' },
   description: '旧ジャニーズのアーティストの曲を、アルバムごとに聴ける。',
 };
