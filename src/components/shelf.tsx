@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { NO_RESTORE } from '@/lib/no-restore';
 import { Icon } from './icon';
 
 /** 見出しの付いた、横に流せる棚。左右の矢印で1画面ぶん送る */
@@ -79,6 +80,7 @@ function ArrowButton({
       type="button"
       aria-label={label}
       disabled={disabled}
+      {...NO_RESTORE}
       onClick={onClick}
       className="hidden size-8 place-items-center rounded-full border border-line text-foreground transition-[background-color,scale] duration-150 ease-out hover:bg-surface active:scale-90 disabled:opacity-30 disabled:hover:bg-transparent sm:grid"
     >

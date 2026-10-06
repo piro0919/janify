@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 import type { QueueItem, Track } from '@/lib/catalog';
 import { songKeyOf } from '@/lib/library';
+import { NO_RESTORE } from '@/lib/no-restore';
 import { FadeImage } from './fade-image';
 import { HeartButton } from './favorites/heart-button';
 import { Icon } from './icon';
@@ -137,6 +138,7 @@ export function AlbumPlayer({
               <button
                 type="button"
                 disabled={!track.videoId}
+                {...NO_RESTORE}
                 title={
                   track.videoId
                     ? undefined

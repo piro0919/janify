@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 import type { QueueItem } from '@/lib/catalog';
 import { thumbOf } from '@/lib/thumb';
 import { songKeyOf } from '@/lib/library';
+import { NO_RESTORE } from '@/lib/no-restore';
 import { FadeImage } from '../fade-image';
 import { HeartButton } from '../favorites/heart-button';
 import { Icon } from '../icon';
@@ -215,6 +216,7 @@ function BarButton({
       type="button"
       aria-label={label}
       disabled={disabled}
+      {...NO_RESTORE}
       onClick={onClick}
       className={`grid shrink-0 place-items-center rounded-full transition-[scale,color] duration-150 ease-out active:scale-90 disabled:opacity-30 ${
         large
