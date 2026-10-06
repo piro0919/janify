@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { MusicAlbum, WithContext } from 'schema-dts';
 import { AlbumPlayer } from '@/components/album-player';
-import { Ambient } from '@/components/ambient';
+import { AmbientSource } from '@/components/ambient';
 import { JsonLd } from '@/components/json-ld';
 import { artists, coverOf, findAlbum, queueOf } from '@/lib/catalog';
 import { SITE_URL } from '@/lib/site';
@@ -42,7 +42,7 @@ export default async function AlbumPage({ params }: PageProps<'/albums/[id]'>) {
   return (
     <div className="pt-4">
       <JsonLd data={jsonLd} />
-      <Ambient image={cover} />
+      <AmbientSource image={cover} />
       <AlbumPlayer
         // 題名は動画の下に出す（YouTube の動画のページと同じ並び）
         heading={

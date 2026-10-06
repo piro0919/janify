@@ -2,7 +2,6 @@ import type { WebSite, WithContext } from 'schema-dts';
 import { AlbumShelf } from '@/components/album-grid';
 import { CoverCard, SHELF_ITEM } from '@/components/cover-card';
 import { FavoriteShelves } from '@/components/favorites/favorite-shelves';
-import { PlayingAmbient } from '@/components/playing-ambient';
 import { JsonLd } from '@/components/json-ld';
 import { Shelf } from '@/components/shelf';
 import { SongList } from '@/components/song-list';
@@ -27,7 +26,6 @@ export default function Home() {
   return (
     <>
       <JsonLd data={jsonLd} />
-      <PlayingAmbient />
       <FavoriteShelves />
       <Shelf title="人気曲">
         <SongList songs={popularSongs(24)} columns />

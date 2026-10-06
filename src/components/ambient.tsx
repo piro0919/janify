@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from 'react';
+import { thumbOf } from '@/lib/thumb';
+import { usePlayer } from './player/player-provider';
 
 /**
  * 画面の上部に敷く、サムネイルの色のグラデーション（YouTube Music のアルバムの画面に近い形）。
@@ -10,67 +12,100 @@ import { useEffect, useRef, useState } from 'react';
  * 色を読むには同じドメインの画像が要るので、Next.js の画像変換（/_next/image）を通して小さく読む。
  * YouTube のサーバーへ取りに行くのは、表示しているサムネイルと同じく画像変換の側だけ
  */
-/** 色が決まらないとき（トップで何も流していないときなど）に敷く、Janify の差し色のグラデーション */
-export const BRAND_COLORS: Colors = [
+
+/** 色が決まらないとき（何も流していないときなど）に敷く、Janify の差し色のグラデーション */
+const BRAND_COLORS: Colors = [
   'color-mix(in oklab, var(--accent) 16%, transparent)',
   'color-mix(in oklab, var(--accent) 28%, transparent)',
 ];
 
 type Colors = [string, string];
 
-export function Ambient({ image, fallback }: { image: string | null; fallback?: Colors }) {
+/** 一度計算した色。同じアルバムに戻ったときは計算し直さず、すぐ出す */
+const cache = new Map<string, Colors | null>();
+
+/** この画面の背景の色をどの絵から取るか。null は「流している曲の色、無ければ差し色」 */
+const SourceContext = createContext<(image: string | null) => void>(() => {});
+
+/**
+ * 画面の上部に敷く、色のグラデーション。全ページ共通で1つだけ置き（layout.tsx）、画面を移っても作り直さない。
+ * 各ページは AmbientSource で「この画面はこの絵の色」と伝えるだけで、色は前の画面の色から直接移り変わる。
+ * 伝えない画面（一覧・ライブラリ・検索・設定など）は、流している曲のサムネイルの色、流していなければ差し色にする
+ */
+export function AmbientProvider({ children }: { children: ReactNode }) {
+  const [source, setSource] = useState<string | null>(null);
+  const { current } = usePlayer();
+  const image = source ?? (current ? thumbOf(current.videoId) : null);
+
   // 色が変わるたびに層を重ね、新しい層をふわっと出してから古い層を捨てる。グラデーションは
   // CSS の transition で移り変わらないので、重ねて透明度で入れ替える
   const [layers, setLayers] = useState<{ id: number; colors: Colors }[]>([]);
   const nextId = useRef(0);
+  const shown = useRef<string>('');
 
   useEffect(() => {
     let cancelled = false;
     const show = (colors: Colors) => {
-      if (cancelled) return;
+      const key = colors.join();
+      if (cancelled || key === shown.current) return;
+      shown.current = key;
       const id = nextId.current++;
       setLayers((prev) => [...prev.slice(-1), { id, colors }]);
     };
     if (!image) {
-      if (fallback) show(fallback);
-      return () => {
-        cancelled = true;
-      };
+      show(BRAND_COLORS);
+      return;
+    }
+    const known = cache.get(image);
+    if (known !== undefined) {
+      show(known ?? BRAND_COLORS);
+      return;
     }
     const img = new Image();
     // 画像変換が受け付ける幅（imageSizes）と画質（75）に合わせる
     img.src = `/_next/image?url=${encodeURIComponent(image)}&w=64&q=75`;
     img.onload = () => {
       const found = pickColors(img);
-      if (found) show(found);
-      else if (fallback) show(fallback);
+      cache.set(image, found);
+      show(found ?? BRAND_COLORS);
     };
     return () => {
       cancelled = true;
     };
-    // fallback は定数を渡す前提なので、変わったときに読み直す必要はない
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [image]);
 
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[32rem] opacity-35 dark:opacity-100"
-    >
-      {layers.map((layer) => (
-        <div
-          key={layer.id}
-          className="absolute inset-0 animate-[fade-in_0.7s_ease-out_both]"
-          style={{
-            background: [
-              `radial-gradient(60% 80% at 85% 0%, ${layer.colors[1]}, transparent 70%)`,
-              `linear-gradient(to bottom, ${layer.colors[0]}, transparent)`,
-            ].join(', '),
-          }}
-        />
-      ))}
-    </div>
+    <SourceContext value={setSource}>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[32rem] opacity-35 dark:opacity-100"
+      >
+        {layers.map((layer) => (
+          <div
+            key={layer.id}
+            className="absolute inset-0 animate-[fade-in_0.7s_ease-out_both]"
+            style={{
+              background: [
+                `radial-gradient(60% 80% at 85% 0%, ${layer.colors[1]}, transparent 70%)`,
+                `linear-gradient(to bottom, ${layer.colors[0]}, transparent)`,
+              ].join(', '),
+            }}
+          />
+        ))}
+      </div>
+      {children}
+    </SourceContext>
   );
+}
+
+/** この画面の背景の色を、この絵から取る。画面を離れたら、流している曲の色に戻す。何も描かない */
+export function AmbientSource({ image }: { image: string | null }) {
+  const setSource = useContext(SourceContext);
+  useEffect(() => {
+    setSource(image);
+    return () => setSource(null);
+  }, [image, setSource]);
+  return null;
 }
 
 /**
