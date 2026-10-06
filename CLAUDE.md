@@ -90,7 +90,8 @@
 - `pnpm lighthouse` — 手元だけの速度と品質の計測。結果は `.lighthouseci` に書くだけ。2026-10-07 時点で、速度以外は 0.9 以上、速度は 0.62〜0.76（LCP が 6〜12 秒。読み込めたら出す画像の透明の間が数えられているか、未確認）
 - カタログ（`src/lib/catalog.ts`）は `server-only`。ブラウザ側の部品から値として読み込むとビルドで止まる。一度、`thumbOf` を読み込んだだけで約500KBのカタログ全体がブラウザに入っていた。ブラウザでも使う小物は `src/lib/thumb.ts` のように別のファイルに置く
 - 環境変数の検査は、サイトは `src/env.ts`（いまは空。ログインのときに足す）、`scripts/` は `scripts/lib/env.ts`
-- PWA の manifest は `src/app/manifest.ts`、アイコンは `scripts/build-icons.py` が `public/icon-*.png` にも書き出す。「ホーム画面に追加」は設定の画面に置いた（常に見える場所には置かない）
+- アイコンの原画は `src/assets/icon-source.png`（ChatGPT に描かせた、ロゴと同じ斜体のセリフ体の「J」ときらめき）。`python3 scripts/build-icons.py` が地を #0e0d12 に塗り直してから、favicon・apple-icon・icon.png・`public/icon-*.png` に書き出す。原画を差し替えたら流し直す
+- PWA の manifest は `src/app/manifest.ts`。「ホーム画面に追加」は設定の画面に置いた（常に見える場所には置かない）
 
 ## データの流れ
 

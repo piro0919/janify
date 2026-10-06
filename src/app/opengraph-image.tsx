@@ -6,7 +6,7 @@ export const alt = 'Janify — 旧ジャニーズの曲を、アルバムごと�
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-// アイコンは scripts/build-icons.py が描いたもの。地色もアイコンに合わせる
+// アイコンは scripts/build-icons.py が書き出したもの（地は #0e0d12 に塗り直してある）。地色もアイコンに合わせる
 const icon = `data:image/png;base64,${await readFile(join(process.cwd(), 'src/app/icon.png'), 'base64')}`;
 // Noto Sans JP の太字から、この絵で使う文字だけを抜いたもの（Google Fonts の text= で取得）。
 // 題字を変えて文字が増えたら取り直す。無い文字は豆腐になる
