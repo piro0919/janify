@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: 'Janify', template: '%s | Janify' },
   description: '旧ジャニーズのアーティストの曲を、アルバムごとに聴ける。',
+  twitter: { card: 'summary_large_image' },
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {

@@ -1,0 +1,42 @@
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { ImageResponse } from 'next/og';
+
+export const alt = 'Janify — 旧ジャニーズの曲を、アルバムごとに聴ける。';
+export const size = { width: 1200, height: 630 };
+export const contentType = 'image/png';
+
+// アイコンは scripts/build-icons.py が描いたもの。地色もアイコンに合わせる
+const icon = `data:image/png;base64,${await readFile(join(process.cwd(), 'src/app/icon.png'), 'base64')}`;
+// Noto Sans JP の太字から、この絵で使う文字だけを抜いたもの（Google Fonts の text= で取得）。
+// 題字を変えて文字が増えたら取り直す。無い文字は豆腐になる
+const font = await readFile(join(process.cwd(), 'src/assets/noto-sans-jp-700-og.ttf'));
+
+export default function OpengraphImage() {
+  return new ImageResponse(
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 48,
+        padding: '0 80px',
+        background: '#0f0f0f',
+        color: '#f1f1f1',
+        fontFamily: 'Noto Sans JP',
+      }}
+    >
+      <img src={icon} width={260} height={260} alt="" />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', fontSize: 120, letterSpacing: -4 }}>
+          Jani<span style={{ color: '#ff4e45' }}>fy</span>
+        </div>
+        <div style={{ fontSize: 34, color: '#aaaaaa' }}>
+          旧ジャニーズの曲を、アルバムごとに聴ける。
+        </div>
+      </div>
+    </div>,
+    { ...size, fonts: [{ name: 'Noto Sans JP', data: font, weight: 700 }] },
+  );
+}
