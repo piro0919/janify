@@ -245,8 +245,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [shown, setShown] = useState<QueueItem | null>(null);
   if (current && current !== shown) setShown(current);
 
-  // 右下の窓と大きな置き場所を行き来するとき、元の位置と大きさから滑らかに移す（FLIP）。
-  // 動かすのは見た目の transform だけで、iframe そのものは動かさない
+  // 大きな置き場所から右下の窓へ移るときは、元の位置と大きさから滑らかに縮める（FLIP）。
+  // 逆向きはふわっと出すだけにする。動かすのは見た目だけで、iframe そのものは動かさない
   const lastBox = useRef<DOMRect | null>(null);
   const lastMode = useRef(mode);
 
@@ -306,7 +306,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
     const to = el.getBoundingClientRect();
     const moved = lastMode.current !== mode && lastMode.current !== 'none' && mode !== 'none';
-    if (moved && from && to.width > 0 && !prefersReducedMotion()) {
+    if (moved && lastMode.current === 'dock' && mode === 'slot' && !prefersReducedMotion()) {
+      // 大きな置き場所に出るときは、右下から飛んでこさせず、その場でふわっと出す。
+      // 飛んでくる動きは「何かが移動してきた」ように見え、新しく流し始めたときに落ち着かない
+      el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: EASE_OUT });
+    } else if (moved && from && to.width > 0 && !prefersReducedMotion()) {
+      // 大きな置き場所から右下の窓へは、元の位置から縮めて見せる。どこへ行ったかが分かる
       el.animate(
         [
           {
