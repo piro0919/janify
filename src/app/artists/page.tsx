@@ -1,13 +1,18 @@
 import type { Metadata } from 'next';
 import { COVER_GRID, CoverCard } from '@/components/cover-card';
 import { artists, coverOf } from '@/lib/catalog';
+import { Heading } from '@/components/heading';
 
 export const metadata: Metadata = { title: 'アーティスト' };
 
 export default function ArtistsPage() {
   return (
     <>
-      <h1 className="pt-4 pb-6 text-3xl font-bold">アーティスト</h1>
+      <div className="pt-4 pb-6">
+        <Heading as="h1" size="page" eyebrow="Artists">
+          アーティスト
+        </Heading>
+      </div>
       <div className={COVER_GRID}>
         {artists.map((artist, i) => (
           <CoverCard

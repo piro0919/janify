@@ -12,6 +12,7 @@ import { usePlayer } from '@/components/player/player-provider';
 import type { QueueItem } from '@/lib/catalog';
 import { songKeyOf } from '@/lib/library';
 import { thumbOf } from '@/lib/thumb';
+import { Heading } from '@/components/heading';
 
 /**
  * お気に入りの曲の画面。お気に入りの曲を1本のプレイリストとして扱う（アルバムの画面と同じ作り）。
@@ -75,7 +76,9 @@ export function FavoriteSongs() {
           onPlay={() => kept.length > 0 && play()}
         />
         <div className="lg:mt-4">
-          <h1 className="text-2xl font-bold sm:text-3xl">お気に入りの曲</h1>
+          <Heading as="h1" size="page" eyebrow="Favorites">
+            お気に入りの曲
+          </Heading>
           <p className="mt-1 text-muted">{kept.length} 曲</p>
         </div>
         <div className="flex items-center gap-3 lg:mt-4">

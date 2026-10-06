@@ -65,7 +65,8 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
-  --font-sans: var(--font-noto-sans-jp), system-ui, sans-serif;
+  --font-sans: var(--font-body), system-ui, sans-serif;
+  --font-display: var(--font-shippori), 'Hiragino Mincho ProN', serif;
 }
 
 body {

@@ -9,6 +9,7 @@ import { Shelf } from '@/components/shelf';
 import { SongList } from '@/components/song-list';
 import { artists, coverOf, findArtist, songsOf } from '@/lib/catalog';
 import { SITE_URL } from '@/lib/site';
+import { Heading } from '@/components/heading';
 
 export function generateStaticParams() {
   return artists.map((a) => ({ id: a.id }));
@@ -44,7 +45,9 @@ export default async function ArtistPage({ params }: PageProps<'/artists/[id]'>)
       <JsonLd data={jsonLd} />
       <AmbientSource image={cover} />
       <div className="flex items-center gap-3 pt-4">
-        <h1 className="text-3xl font-bold">{artist.name}</h1>
+        <Heading as="h1" size="page" eyebrow="Artist">
+          {artist.name}
+        </Heading>
         <HeartButton
           kind="artists"
           itemKey={artist.id}
@@ -54,11 +57,13 @@ export default async function ArtistPage({ params }: PageProps<'/artists/[id]'>)
         />
       </div>
       {songs.length > 0 && (
-        <Shelf title="よく収録されている曲">
+        <Shelf title="よく収録されている曲" eyebrow="Top Tracks">
           <SongList songs={songs} columns />
         </Shelf>
       )}
-      <h2 className="mt-10 mb-4 text-xl font-bold sm:text-2xl">アルバム</h2>
+      <div className="mt-10 mb-4">
+        <Heading eyebrow="Discography">アルバム</Heading>
+      </div>
       <AlbumGrid
         albums={artist.albums.toReversed().map((album) => ({ artist, album }))}
         showArtist={false}

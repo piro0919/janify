@@ -5,10 +5,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { COVER_GRID, CoverCard } from '@/components/cover-card';
 import { SongList } from '@/components/song-list';
 import { search, type SearchIndex } from '@/lib/search';
+import { Heading } from '@/components/heading';
 
 let loading: Promise<SearchIndex> | undefined;
 const loadIndex = () =>
   (loading ??= fetch('/search-index').then((r) => r.json() as Promise<SearchIndex>));
+
+/** 見出しの上に添える小さな英字 */
+const EYEBROW: Record<string, string> = {
+  楽曲: 'Songs',
+  アルバム: 'Albums',
+  アーティスト: 'Artists',
+};
 
 /** 出しすぎると一覧が長くなるので、種類ごとに上限を設ける */
 const LIMIT = { artists: 10, albums: 20, songs: 50 };
@@ -87,12 +95,12 @@ function Section({
 }) {
   return (
     <section className="mt-10 first:mt-4">
-      <h2 className="mb-4 text-xl font-bold">
-        {title}
-        <span className="ml-2 text-sm font-normal text-muted">
+      <div className="mb-4 flex items-end gap-3">
+        <Heading eyebrow={EYEBROW[title]}>{title}</Heading>
+        <span className="pb-1 text-sm text-muted">
           {count > limit ? `${count} 件中 ${limit} 件` : `${count} 件`}
         </span>
-      </h2>
+      </div>
       {children}
     </section>
   );

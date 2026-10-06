@@ -34,17 +34,19 @@ export function AlbumGrid({
 /** アルバムを並べた棚。棚1段に並べるのは20枚までで、残りは「すべて表示」の先で見る */
 export function AlbumShelf({
   title,
+  eyebrow,
   href,
   albums,
   eager,
 }: {
   title: string;
+  eyebrow?: string;
   href?: string;
   albums: AlbumEntry[];
   eager?: boolean;
 }) {
   return (
-    <Shelf title={title} href={href}>
+    <Shelf title={title} eyebrow={eyebrow} href={href}>
       {albums.slice(0, 20).map(({ artist, album }, i) => (
         <CoverCard
           key={album.id}

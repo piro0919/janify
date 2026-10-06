@@ -7,6 +7,7 @@ import { AmbientSource } from '@/components/ambient';
 import { JsonLd } from '@/components/json-ld';
 import { artists, coverOf, findAlbum, queueOf } from '@/lib/catalog';
 import { SITE_URL } from '@/lib/site';
+import { Heading } from '@/components/heading';
 
 export function generateStaticParams() {
   return artists.flatMap((artist) => artist.albums.map((a) => ({ id: a.id })));
@@ -47,7 +48,9 @@ export default async function AlbumPage({ params }: PageProps<'/albums/[id]'>) {
         // 題名は動画の下に出す（YouTube の動画のページと同じ並び）
         heading={
           <>
-            <h1 className="text-2xl font-bold sm:text-3xl">{album.title}</h1>
+            <Heading as="h1" size="page" eyebrow="Album">
+              {album.title}
+            </Heading>
             <p className="mt-1 text-muted">
               <Link
                 href={`/artists/${artist.id}`}

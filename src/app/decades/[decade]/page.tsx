@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { AlbumGrid } from '@/components/album-grid';
 import { decades } from '@/lib/catalog';
+import { Heading } from '@/components/heading';
 
 export const dynamicParams = false;
 
@@ -26,7 +27,11 @@ export default async function DecadePage({ params }: PageProps<'/decades/[decade
   if (!found) notFound();
   return (
     <>
-      <h1 className="pt-4 pb-6 text-3xl font-bold">{found.decade}年代</h1>
+      <div className="pt-4 pb-6">
+        <Heading as="h1" size="page" eyebrow={`The ${found.decade}s`}>
+          {found.decade}年代
+        </Heading>
+      </div>
       <AlbumGrid albums={found.albums} />
     </>
   );

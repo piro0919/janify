@@ -27,13 +27,19 @@ export default function Home() {
     <>
       <JsonLd data={jsonLd} />
       <FavoriteShelves />
-      <Shelf title="人気曲">
+      <Shelf title="人気曲" eyebrow="Popular">
         <SongList songs={popularSongs(24)} columns />
       </Shelf>
 
-      <AlbumShelf title="新しいアルバム" href="/albums" albums={albumsByNewest} eager />
+      <AlbumShelf
+        title="新しいアルバム"
+        eyebrow="New Releases"
+        href="/albums"
+        albums={albumsByNewest}
+        eager
+      />
 
-      <Shelf title="アーティスト" href="/artists">
+      <Shelf title="アーティスト" eyebrow="Artists" href="/artists">
         {artists.map((artist) => (
           <CoverCard
             key={artist.id}
@@ -51,6 +57,7 @@ export default function Home() {
         <AlbumShelf
           key={decade}
           title={`${decade}年代`}
+          eyebrow={`The ${decade}s`}
           href={`/decades/${decade}`}
           albums={albums}
         />

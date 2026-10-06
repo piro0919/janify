@@ -4,14 +4,18 @@ import Link from 'next/link';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { NO_RESTORE } from '@/lib/no-restore';
 import { Icon } from './icon';
+import { Heading } from './heading';
 
 /** 見出しの付いた、横に流せる棚。左右の矢印で1画面ぶん送る */
 export function Shelf({
   title,
+  eyebrow,
   href,
   children,
 }: {
   title: string;
+  /** 見出しの上に添える小さな英字 */
+  eyebrow?: string;
   /** 「すべて表示」の行き先 */
   href?: string;
   children: ReactNode;
@@ -35,7 +39,7 @@ export function Shelf({
   return (
     <section className="mt-10 first:mt-4">
       <div className="mb-2 flex items-end gap-3">
-        <h2 className="text-xl font-bold sm:text-2xl">{title}</h2>
+        <Heading eyebrow={eyebrow}>{title}</Heading>
         <div className="ml-auto flex items-center gap-2">
           {href && (
             <Link

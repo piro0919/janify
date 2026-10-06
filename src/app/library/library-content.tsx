@@ -5,6 +5,14 @@ import { COVER_GRID, CoverCard } from '@/components/cover-card';
 import Link from 'next/link';
 import { useLibraryKept } from '@/components/favorites/use-library';
 import { SongList } from '@/components/song-list';
+import { Heading } from '@/components/heading';
+
+/** 見出しの上に添える小さな英字 */
+const EYEBROW: Record<string, string> = {
+  楽曲: 'Songs',
+  アルバム: 'Albums',
+  アーティスト: 'Artists',
+};
 
 export function LibraryContent() {
   const { ready, songs, albums, artists } = useLibraryKept();
@@ -75,10 +83,8 @@ function Section({
   return (
     <section className="mt-10 first:mt-6">
       <div className="mb-4 flex items-end gap-3">
-        <h2 className="text-xl font-bold sm:text-2xl">
-          {title}
-          <span className="ml-2 text-sm font-normal text-muted">{count} 件</span>
-        </h2>
+        <Heading eyebrow={EYEBROW[title]}>{title}</Heading>
+        <span className="pb-1 text-sm text-muted">{count} 件</span>
         {href && (
           <Link
             href={href}

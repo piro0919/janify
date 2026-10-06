@@ -11,12 +11,12 @@ export function FavoriteShelves() {
   return (
     <>
       {songs.length > 0 && (
-        <Shelf title="お気に入りの曲" href="/library/songs">
+        <Shelf title="お気に入りの曲" eyebrow="Favorites" href="/library/songs">
           <SongList songs={songs.slice(0, 24)} favorites={songs} hearts={false} columns />
         </Shelf>
       )}
       {albums.length > 0 && (
-        <Shelf title="お気に入りのアルバム" href="/library">
+        <Shelf title="お気に入りのアルバム" eyebrow="Favorite Albums" href="/library">
           {albums.slice(0, 20).map((a, i) => (
             <CoverCard
               key={a.id}
@@ -32,7 +32,7 @@ export function FavoriteShelves() {
         </Shelf>
       )}
       {artists.length > 0 && (
-        <Shelf title="お気に入りのアーティスト" href="/library">
+        <Shelf title="お気に入りのアーティスト" eyebrow="Favorite Artists" href="/library">
           {artists.slice(0, 20).map((a, i) => (
             <CoverCard
               key={a.id}

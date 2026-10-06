@@ -1,6 +1,6 @@
 import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
-import { Noto_Sans_JP, Playfair_Display } from 'next/font/google';
+import { Playfair_Display, Shippori_Mincho_B1, Zen_Kaku_Gothic_New } from 'next/font/google';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { AmbientProvider } from '@/components/ambient';
@@ -23,10 +23,18 @@ const playfair = Playfair_Display({
   style: 'italic',
 });
 
-const notoSansJp = Noto_Sans_JP({
-  variable: '--font-noto-sans-jp',
+// 本文・ボタン・説明の字。読みやすさを優先したゴシック体
+const zenKaku = Zen_Kaku_Gothic_New({
+  variable: '--font-body',
   subsets: ['latin'],
   weight: ['400', '700'],
+});
+
+// 見出し・アルバム名・アーティスト名の字。ロゴのセリフ体に合う、品のある明朝体。大きな字にだけ使う
+const shippori = Shippori_Mincho_B1({
+  variable: '--font-shippori',
+  subsets: ['latin'],
+  weight: '800',
 });
 
 export const metadata: Metadata = {
@@ -49,7 +57,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     // data-theme はページを描く前に themeScript が付けるので、サーバーの出力と食い違ってよい
     <html
       lang="ja"
-      className={`${notoSansJp.variable} ${playfair.variable} h-full antialiased`}
+      className={`${zenKaku.variable} ${shippori.variable} ${playfair.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
