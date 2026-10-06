@@ -79,6 +79,15 @@
 - YouTube を自動の手段で読まない。Playwright などで検索結果を読むのは利用規約違反。動画は Data API から取る
 - 1つのアプリに1つの API プロジェクト。Janify 用のプロジェクト（Google Cloud の「Janify」）のキーを使う。ほかのアプリのキーを借りない
 
+## 検査と道具
+
+- `pnpm knip` — 使われていないファイル・エクスポート・パッケージ。CI でも回す。設定ファイルや CSS からしか読まれないもの（commitlint・secretlint の設定・tailwindcss）は `knip.json` で除外している
+- `pnpm test:e2e` — Playwright。本番のビルドを立ち上げ、トップ・検索・再生・お気に入り・テーマをパソコンとスマホの幅で確かめる。YouTube の再生そのものは確かめない（ネットワーク次第で揺れる）
+- `pnpm lighthouse` — 手元だけの速度と品質の計測。結果は `.lighthouseci` に書くだけ。2026-10-07 時点で、速度以外は 0.9 以上、速度は 0.62〜0.76（LCP が 6〜12 秒。読み込めたら出す画像の透明の間が数えられているか、未確認）
+- カタログ（`src/lib/catalog.ts`）は `server-only`。ブラウザ側の部品から値として読み込むとビルドで止まる。一度、`thumbOf` を読み込んだだけで約500KBのカタログ全体がブラウザに入っていた。ブラウザでも使う小物は `src/lib/thumb.ts` のように別のファイルに置く
+- 環境変数の検査は、サイトは `src/env.ts`（いまは空。ログインのときに足す）、`scripts/` は `scripts/lib/env.ts`
+- PWA の manifest は `src/app/manifest.ts`、アイコンは `scripts/build-icons.py` が `public/icon-*.png` にも書き出す。「ホーム画面に追加」は設定の画面に置いた（常に見える場所には置かない）
+
 ## データの流れ
 
 正本は Notion（私物のワークスペースの「Janify」ページの下にある「アーティスト」「アルバム」「曲」）。

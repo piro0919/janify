@@ -39,5 +39,8 @@ jobs:
 
       - run: pnpm test
 
+      # 使われていないファイル・エクスポート・パッケージ
+      - run: pnpm knip
+
       # アルバムのページはすべてビルドのときに作る。catalog.json の誤りはここで落ちる
       - run: pnpm build
