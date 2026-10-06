@@ -249,6 +249,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // 動かすのは見た目の transform だけで、iframe そのものは動かさない
   const lastBox = useRef<DOMRect | null>(null);
   const lastMode = useRef(mode);
+  // 前の形になった時刻。一瞬（1フレームほど）しか続かなかった形からは、移る動きを見せない
+  const lastModeAt = useRef(0);
 
   // アルバムの画面では、プレイヤーを画面に固定し、置き場所の位置と大きさに合わせ続ける。
   // 置き場所は曲目をスクロールしても上に貼り付く（sticky）ので、ページの中ではなく画面の座標で合わせる。
@@ -305,7 +307,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
 
     const to = el.getBoundingClientRect();
-    const moved = lastMode.current !== mode && lastMode.current !== 'none' && mode !== 'none';
+    // 最初の1曲を流し始めたときは、置き場所が知らされるまでの一瞬だけ右下の窓の形になる。
+    // それを「右下から移ってきた」と取り違えないよう、すぐ切り替わった形は、無かったものとして扱う
+    const previous =
+      lastMode.current === 'dock' && performance.now() - lastModeAt.current < 100
+        ? 'none'
+        : lastMode.current;
+    const moved = previous !== mode && previous !== 'none' && mode !== 'none';
+    if (previous === 'none' && mode === 'slot' && !prefersReducedMotion()) {
+      // 何も流していなかったところから大きな置き場所に出るときは、その場でふわっと出す
+      el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: EASE_OUT });
+    }
     if (moved && from && to.width > 0 && !prefersReducedMotion()) {
       el.animate(
         [
@@ -318,6 +330,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         { duration: 400, easing: EASE_OUT },
       );
     }
+    if (lastMode.current !== mode) lastModeAt.current = performance.now();
     lastMode.current = mode;
     lastBox.current = to;
 
@@ -412,6 +425,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       {/* プレイヤーの上には何も重ねない（YouTube の規約）。200×200 を下回らない */}
       <div
         ref={frame}
+        // E2E テストや確かめのときに、プレイヤーの枠を見つける目印
+        data-player-frame
         className={
           mode === 'slot'
             ? 'fixed z-10 overflow-hidden rounded-lg bg-black [&>iframe]:size-full'

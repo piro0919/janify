@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { FadeImage } from './fade-image';
 import { Icon } from './icon';
 import { usePlayer } from './player/player-provider';
@@ -26,7 +26,9 @@ export function PlayerStage({
   const { setSlot } = usePlayer();
   const slot = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  // 画面を描く前に置き場所を知らせる。描いたあとだと、最初の1曲を流し始めた瞬間に、
+  // プレイヤーが一度だけ右下の窓として描かれてしまう
+  useLayoutEffect(() => {
     if (!active) return;
     setSlot(slot.current);
     return () => setSlot(null);
