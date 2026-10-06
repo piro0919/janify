@@ -84,6 +84,16 @@ body {
   }
 }
 
+/* 画面の上部の色の背景を入れ替えるときのふわっと出る動き（ambient.tsx） */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* お気に入りに入れたときのハートの弾み */
 @keyframes pop {
   0% {

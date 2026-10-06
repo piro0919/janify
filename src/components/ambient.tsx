@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * 画面の上部に敷く、サムネイルの色のグラデーション（YouTube Music のアルバムの画面に近い形）。
@@ -10,42 +10,66 @@ import { useEffect, useState } from 'react';
  * 色を読むには同じドメインの画像が要るので、Next.js の画像変換（/_next/image）を通して小さく読む。
  * YouTube のサーバーへ取りに行くのは、表示しているサムネイルと同じく画像変換の側だけ
  */
-export function Ambient({ image }: { image: string | null }) {
-  const [colors, setColors] = useState<[string, string] | null>(null);
+/** 色が決まらないとき（トップで何も流していないときなど）に敷く、Janify の差し色のグラデーション */
+export const BRAND_COLORS: Colors = [
+  'color-mix(in oklab, var(--accent) 16%, transparent)',
+  'color-mix(in oklab, var(--accent) 28%, transparent)',
+];
+
+type Colors = [string, string];
+
+export function Ambient({ image, fallback }: { image: string | null; fallback?: Colors }) {
+  // 色が変わるたびに層を重ね、新しい層をふわっと出してから古い層を捨てる。グラデーションは
+  // CSS の transition で移り変わらないので、重ねて透明度で入れ替える
+  const [layers, setLayers] = useState<{ id: number; colors: Colors }[]>([]);
+  const nextId = useRef(0);
 
   useEffect(() => {
-    if (!image) return;
     let cancelled = false;
+    const show = (colors: Colors) => {
+      if (cancelled) return;
+      const id = nextId.current++;
+      setLayers((prev) => [...prev.slice(-1), { id, colors }]);
+    };
+    if (!image) {
+      if (fallback) show(fallback);
+      return () => {
+        cancelled = true;
+      };
+    }
     const img = new Image();
     // 画像変換が受け付ける幅（imageSizes）と画質（75）に合わせる
     img.src = `/_next/image?url=${encodeURIComponent(image)}&w=64&q=75`;
     img.onload = () => {
-      if (cancelled) return;
       const found = pickColors(img);
-      if (found) setColors(found);
+      if (found) show(found);
+      else if (fallback) show(fallback);
     };
     return () => {
       cancelled = true;
     };
+    // fallback は定数を渡す前提なので、変わったときに読み直す必要はない
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [image]);
 
   return (
     <div
       aria-hidden
-      className={`pointer-events-none absolute inset-x-0 top-0 -z-10 h-[32rem] transition-opacity duration-700 ease-out ${
-        colors ? 'opacity-35 dark:opacity-100' : 'opacity-0'
-      }`}
-      style={
-        colors
-          ? {
-              background: [
-                `radial-gradient(60% 80% at 85% 0%, ${colors[1]}, transparent 70%)`,
-                `linear-gradient(to bottom, ${colors[0]}, transparent)`,
-              ].join(', '),
-            }
-          : undefined
-      }
-    />
+      className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[32rem] opacity-35 dark:opacity-100"
+    >
+      {layers.map((layer) => (
+        <div
+          key={layer.id}
+          className="absolute inset-0 animate-[fade-in_0.7s_ease-out_both]"
+          style={{
+            background: [
+              `radial-gradient(60% 80% at 85% 0%, ${layer.colors[1]}, transparent 70%)`,
+              `linear-gradient(to bottom, ${layer.colors[0]}, transparent)`,
+            ].join(', '),
+          }}
+        />
+      ))}
+    </div>
   );
 }
 
