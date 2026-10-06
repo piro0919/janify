@@ -1,5 +1,9 @@
+// カタログは約500KBあり、ブラウザ側に入ると全ページの読み込みが重くなる。
+// ブラウザ側の部品から値として読み込むとビルドで止まるよう、サーバー専用にする（型だけの読み込みは構わない）
+import 'server-only';
 import catalog from '@/data/catalog.json';
 import { bareTitle, songKey } from '@/lib/song';
+import { thumbOf } from '@/lib/thumb';
 
 // 正本は Notion。src/data/catalog.json は scripts/notion-export.ts が書き出したもので、手で直さない
 export type VideoKind = 'mv' | 'audio' | 'unofficial';
@@ -28,14 +32,6 @@ export function findAlbum(id: string): { artist: Artist; album: Album } | undefi
     const album = artist.albums.find((a) => a.id === id);
     if (album) return { artist, album };
   }
-}
-
-/**
- * YouTube のサムネイル。mqdefault は動画と同じ 16:9 で、黒い帯が入らない。
- * hqdefault は 4:3 に黒い帯が付いていて、16:9 の枠に収めると端を切ることになる（サムネイルの改変は規約で禁止）
- */
-export function thumbOf(videoId: string): string {
-  return `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
 }
 
 /** 一覧に出す絵。顔が映りやすい MV を先に探し、無ければ音源の絵（ジャケット）を使う */

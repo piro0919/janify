@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
-import { type QueueItem, thumbOf } from '@/lib/catalog';
+import type { QueueItem } from '@/lib/catalog';
+import { thumbOf } from '@/lib/thumb';
 import { songKeyOf } from '@/lib/library';
 import { FadeImage } from '../fade-image';
 import { HeartButton } from '../favorites/heart-button';

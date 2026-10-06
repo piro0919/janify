@@ -1,6 +1,7 @@
 'use client';
 
-import { type QueueItem, thumbOf } from '@/lib/catalog';
+import type { QueueItem } from '@/lib/catalog';
+import { thumbOf } from '@/lib/thumb';
 import { songKeyOf } from '@/lib/library';
 import { HeartButton } from './favorites/heart-button';
 import { FadeImage } from './fade-image';
