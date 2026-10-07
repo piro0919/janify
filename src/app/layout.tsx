@@ -81,7 +81,8 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
                     <HeaderBar />
                   </Header>
                   <main className="flex-1 px-4 pb-12 sm:px-8">{children}</main>
-                  <footer className="page-bottom flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line px-4 pt-6 text-sm text-muted sm:px-8">
+                  {/* 375px の幅でもリンク3つが1行に収まるよう、スマホでは字を小さく、間を詰める。© はスマホでは2行目の右端 */}
+                  <footer className="page-bottom flex flex-wrap items-center gap-x-4 gap-y-2 px-4 pt-6 text-xs text-muted sm:gap-x-6 sm:px-8 sm:text-sm">
                     <Link href="/terms" className="hover:text-foreground">
                       利用規約
                     </Link>
@@ -96,7 +97,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
                     >
                       お問い合わせ
                     </a>
-                    <span className="ml-auto">© {OPERATOR}</span>
+                    <span className="w-full text-right sm:ml-auto sm:w-auto">© {OPERATOR}</span>
                   </footer>
                 </div>
               </AmbientProvider>

@@ -68,7 +68,7 @@ export function Sidebar() {
         </Link>
       ))}
       {/* YouTube と同じく、設定は左のメニューの下の方に置く */}
-      <div className="mt-auto border-t border-line py-3">
+      <div className="mt-auto py-3">
         <Link
           href="/settings"
           className={`flex items-center gap-4 rounded-lg px-3 py-2.5 text-sm font-bold transition-colors duration-150 ${
