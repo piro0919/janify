@@ -94,7 +94,11 @@ export function AlbumPlayer({
         </div>
       </div>
 
-      <ol>
+      {/*
+        行の地の色は字の手前まで広げたいので、行の内側に余白（px-3）を取る。そのぶん並び全体を外へ出し（-mx-3）、
+        番号の頭が題名の頭とそろうようにする
+      */}
+      <ol className="-mx-3">
         {tracks.map((track, i) => {
           const active = here && current?.videoId === track.videoId;
           return (
@@ -118,7 +122,7 @@ export function AlbumPlayer({
                   active ? 'font-bold' : ''
                 } disabled:cursor-default disabled:text-muted/50`}
               >
-                <span className="flex w-6 shrink-0 justify-end text-sm tabular-nums text-muted">
+                <span className="flex w-5 shrink-0 justify-end text-sm tabular-nums text-muted">
                   {active ? <Bars playing={playing} /> : i + 1}
                 </span>
                 <Marquee active={active} className="flex-1">
