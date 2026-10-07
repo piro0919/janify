@@ -10,6 +10,7 @@ import { Bars } from './now-playing';
 import { PlayerStage } from './player-stage';
 import { usePlayer } from './player/player-provider';
 import { PlaybackMode } from './player/playback-mode';
+import { Marquee } from './marquee';
 
 /**
  * アルバムの画面。左に大きなプレイヤーの置き場所、右に曲目。
@@ -120,7 +121,9 @@ export function AlbumPlayer({
                 <span className="flex w-6 shrink-0 justify-end text-sm tabular-nums text-muted">
                   {active ? <Bars playing={playing} /> : i + 1}
                 </span>
-                <span className="truncate">{track.title}</span>
+                <Marquee active={active} className="flex-1">
+                  {track.title}
+                </Marquee>
                 {!track.videoId && <span className="ml-auto shrink-0 text-xs">動画なし</span>}
               </button>
               {track.videoId && (

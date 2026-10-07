@@ -11,6 +11,7 @@ import { HeartButton } from '../favorites/heart-button';
 import { Icon } from '../icon';
 import { PlaybackMode } from './playback-mode';
 import { type PlaybackTime, usePlayer } from './player-provider';
+import { Marquee } from '../marquee';
 
 /**
  * 画面の下に出したままにする操作の帯。曲を選ぶと下からせり上がり、閉じると下へ消える。
@@ -78,8 +79,11 @@ export function PlayerBar({ item, open }: { item: QueueItem | null; open: boolea
               className="hidden aspect-video rounded sm:block"
             />
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold">{item.title}</p>
-              <p className="truncate text-xs text-muted">
+              <Marquee className="text-sm font-bold">{item.title}</Marquee>
+              <Marquee
+                className="text-xs text-muted"
+                text={loading ? '' : `${item.artistName}・${item.albumTitle}`}
+              >
                 {loading ? (
                   '読み込んでいます…'
                 ) : (
@@ -93,7 +97,7 @@ export function PlayerBar({ item, open }: { item: QueueItem | null; open: boolea
                     </Link>
                   </>
                 )}
-              </p>
+              </Marquee>
             </div>
             <HeartButton
               kind="songs"

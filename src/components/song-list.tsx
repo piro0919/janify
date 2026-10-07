@@ -8,6 +8,7 @@ import { HeartButton } from './favorites/heart-button';
 import { FadeImage } from './fade-image';
 import { Bars } from './now-playing';
 import { usePlayer } from './player/player-provider';
+import { Marquee } from './marquee';
 
 /**
  * 小さなサムネイルと曲名を詰めて並べる一覧。押すと曲の入ったアルバムの画面へ移り、その曲から流す
@@ -83,7 +84,7 @@ export function SongList({
               />
               <span className="min-w-0">
                 <span className="flex items-center gap-1.5 text-sm font-bold">
-                  <span className="truncate">{song.title}</span>
+                  <Marquee active={active}>{song.title}</Marquee>
                   {active && <Bars playing={playing} />}
                 </span>
                 <span className="block truncate text-xs text-muted">

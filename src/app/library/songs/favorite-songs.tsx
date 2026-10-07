@@ -14,6 +14,7 @@ import type { QueueItem } from '@/lib/catalog';
 import { songKeyOf } from '@/lib/library';
 import { thumbOf } from '@/lib/thumb';
 import { Heading } from '@/components/heading';
+import { Marquee } from '@/components/marquee';
 
 /**
  * お気に入りの曲の画面。お気に入りの曲を1本のプレイリストとして扱う（アルバムの画面と同じ作り）。
@@ -174,7 +175,9 @@ export function FavoriteSongs() {
                     className="aspect-video shrink-0 rounded"
                   />
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-bold">{song.title}</span>
+                    <Marquee active={active} className="text-sm font-bold">
+                      {song.title}
+                    </Marquee>
                     <span className="block truncate text-xs text-muted">
                       {song.artistName} ・ {song.albumTitle}
                     </span>
