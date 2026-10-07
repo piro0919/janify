@@ -17,6 +17,7 @@ import { EASE_OUT, prefersReducedMotion } from '@/lib/motion';
 import { Icon } from '../icon';
 import { PlayerBar } from './player-bar';
 import { loadYouTubeApi, type YTPlayer } from './youtube';
+import { useWakeLock } from './use-wake-lock';
 
 /**
  * いま何の並びで流しているか。
@@ -355,6 +356,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [playing]);
 
   const current = queue[index] ?? null;
+  useWakeLock(playing);
   const mode = queue.length === 0 ? 'none' : slot ? 'slot' : 'dock';
 
   // 閉じたあとも、帯が下へ消えきるまでは最後の曲を出しておく
