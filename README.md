@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Janify
 
-## Getting Started
+旧ジャニーズ事務所に所属していたアーティストの曲を、アルバムごとに聴ける音楽プレイヤー風のサイトです。
 
-First, run the development server:
+https://janify.kkweb.io/
+
+- 音源はすべて YouTube の埋め込みです。音声や動画のファイルは持ちません
+- 曲目は Wikipedia の公開情報をもとに作り、動画は YouTube Data API で探しています
+- お気に入りは曲・アルバム・アーティストの3つで、ブラウザの中にだけ保存します
+
+## 動かす
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+http://localhost:3000 で開けます。サイトは `src/data/catalog.json` だけを読むので、環境変数は要りません。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 検査
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm typecheck
+pnpm lint
+pnpm format:check
+pnpm knip
+pnpm test       # Vitest
+pnpm test:e2e   # Playwright。本番のビルドを立ち上げて、パソコンとスマホの幅で確かめる
+```
 
-## Learn More
+コミットのときに lefthook が整形・lint・型・秘密情報の検査を回します。
 
-To learn more about Next.js, take a look at the following resources:
+## データ
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+正本は Notion の「アーティスト」「アルバム」「曲」の3つのデータベースです。ビルドからは Notion を叩かず、書き出した JSON をコミットします。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm notion:export                       # Notion → src/data/catalog.json
+pnpm notion:videos && pnpm notion:export  # 見つかった非公式の動画を Notion に入れてから書き出す
+pnpm youtube:icons                       # アーティストのチャンネルのアイコンを Notion に入れる
+```
 
-## Deploy on Vercel
+`scripts/` を動かすには `.env.local` に次の2つが要ります。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| 名前              | 中身                                |
+| ----------------- | ----------------------------------- |
+| `NOTION_TOKEN`    | Notion の連携のトークン             |
+| `YOUTUBE_API_KEY` | Janify 用の YouTube Data API のキー |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+最初の一式の作り方、YouTube の規約で縛られていること、決めたことの経緯は [CLAUDE.md](CLAUDE.md) にまとめています。
+
+## 使っているもの
+
+Next.js（App Router）・Tailwind CSS・YouTube IFrame Player API・Vercel
