@@ -9,7 +9,7 @@ import { usePlayer } from './player/player-provider';
  * 詳細画面（アルバム・お気に入りの曲）の大きなプレイヤーの置き場所。
  * この画面の並びで流している間（active）は、共通のプレイヤーがここに重なって大きく出る（player-provider.tsx が位置を合わせる）。
  * そうでないときは、サムネイルと再生ボタンを出す。サムネイルの上に重ねてよいのは再生ボタンだけ（YouTube の規約）。
- * スマホではこの置き場所だけを、ヘッダーのすぐ下に貼り付ける
+ * パソコンでは列ごと上に貼り付く（album-player.tsx）。スマホは画面が狭く曲目が見づらくなるので、貼り付けない
  */
 export function PlayerStage({
   active,
@@ -35,12 +35,7 @@ export function PlayerStage({
   }, [active, setSlot]);
 
   if (active) {
-    return (
-      <div
-        ref={slot}
-        className="aspect-video w-full rounded-lg bg-black max-lg:sticky max-lg:top-16 max-lg:z-10"
-      />
-    );
+    return <div ref={slot} className="aspect-video w-full rounded-lg bg-black" />;
   }
   return (
     <button
