@@ -109,7 +109,7 @@ body {
 
   /*
    * 詳細画面で流している間（player-stage.tsx が印を付ける）は、YouTube のアプリの動画の画面と同じく、
-   * ヘッダーと下のタブを出さない。動画は画面の上に固定され、下の帯はタブの分だけ下へずれる
+   * ヘッダーと下のタブを出さない。動画は画面の上に固定され、下の再生の帯はタブの分だけ下へずれる
    */
   html[data-watch] .chrome-header,
   html[data-watch] .chrome-tabs {

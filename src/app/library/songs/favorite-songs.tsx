@@ -7,7 +7,7 @@ import { HeartButton } from '@/components/favorites/heart-button';
 import { useLibrary } from '@/components/favorites/use-library';
 import { Icon } from '@/components/icon';
 import { Bars } from '@/components/now-playing';
-import { PlayerStage } from '@/components/player-stage';
+import { PlayerStage, SwipeToLeave } from '@/components/player-stage';
 import { PlaybackMode } from '@/components/player/playback-mode';
 import { usePlayer } from '@/components/player/player-provider';
 import type { QueueItem } from '@/lib/catalog';
@@ -69,12 +69,12 @@ export function FavoriteSongs() {
           label="お気に入りの曲を再生"
           onPlay={() => songs.length > 0 && play()}
         />
-        <div className="lg:mt-4">
+        <SwipeToLeave className="lg:mt-4">
           <Heading as="h1" size="page" eyebrow="Favorites">
             お気に入りの曲
           </Heading>
           <p className="mt-1 text-muted">{songs.length} 曲</p>
-        </div>
+        </SwipeToLeave>
         <div className="flex items-center gap-3 lg:mt-4">
           <button
             type="button"

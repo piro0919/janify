@@ -7,7 +7,7 @@ import { NO_RESTORE } from '@/lib/no-restore';
 import { HeartButton } from './favorites/heart-button';
 import { Icon } from './icon';
 import { Bars } from './now-playing';
-import { PlayerStage } from './player-stage';
+import { PlayerStage, SwipeToLeave } from './player-stage';
 import { usePlayer } from './player/player-provider';
 import { PlaybackMode } from './player/playback-mode';
 import { Marquee } from './marquee';
@@ -66,13 +66,13 @@ export function AlbumPlayer({
           label="このアルバムを再生"
           onPlay={() => start()}
         />
-        <div className="lg:mt-4">
+        <SwipeToLeave className="lg:mt-4">
           {heading}
           {/* 曲数はボタンの並びに置くとスマホで折り返すので、題名の下に置く */}
           <p className="mt-0.5 text-sm text-muted">
             {queue.length} 曲{queue.length < tracks.length && `（全 ${tracks.length} 曲）`}
           </p>
-        </div>
+        </SwipeToLeave>
         <div className="flex items-center gap-2 lg:mt-4">
           <button
             type="button"
