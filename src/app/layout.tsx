@@ -8,6 +8,7 @@ import { HeaderBar } from '@/components/header-bar';
 import { MobileTabs, Sidebar } from '@/components/nav';
 import { PlayerProvider } from '@/components/player/player-provider';
 import { ScrollChrome } from '@/components/scroll-chrome';
+import { SwipeBack } from '@/components/swipe-back/swipe-back';
 import { Progress } from '@/components/progress';
 import { themeScript } from '@/components/theme/theme-script';
 import { ThemeWatcher } from '@/components/theme/theme-watcher';
@@ -108,6 +109,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         </Progress>
         <ThemeWatcher />
         <ScrollChrome />
+        <SwipeBack />
         <Analytics />
       </body>
     </html>
