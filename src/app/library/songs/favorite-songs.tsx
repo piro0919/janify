@@ -19,34 +19,26 @@ import { Marquee } from '@/components/marquee';
 /**
  * お気に入りの曲の画面。お気に入りの曲を1本のプレイリストとして扱う（アルバムの画面と同じ作り）。
  * 押した曲は、この画面のまま、お気に入りの並び順に流れる。つまみをドラッグすると並べ替えられ、その順がそのまま再生順になる。
- * ハートで外した曲は、この画面を開いているあいだは薄く残り、もう一度押せば元の位置に戻る
+ * ハートで外した曲は、その場で一覧から消える
  */
 export function FavoriteSongs() {
-  const { ready, songs, removed } = useLibrary();
+  const { ready, songs } = useLibrary();
   const { current, playing, context, playQueue, toggle } = usePlayer();
   const [dragging, setDragging] = useState<{ key: string; order: string[] } | null>(null);
   const rows = useRef(new Map<string, HTMLLIElement>());
 
-  const isRemoved = (song: QueueItem) => removed.has(`songs:${songKeyOf(song)}`);
   // ドラッグ中は、指の位置に合わせて並べ替えた順で出す
   const shown = dragging
     ? dragging.order.flatMap((k) => songs.find((s) => songKeyOf(s) === k) ?? [])
     : songs;
-  const kept = shown.filter((s) => !isRemoved(s));
   const here = context === 'favorites' && !!current;
 
   const play = (song?: QueueItem) => {
-    const at = song ? kept.findIndex((s) => songKeyOf(s) === songKeyOf(song)) : 0;
-    playQueue(kept, Math.max(0, at), 'favorites');
+    const at = song ? songs.findIndex((s) => songKeyOf(s) === songKeyOf(song)) : 0;
+    playQueue(songs, Math.max(0, at), 'favorites');
   };
 
-  /** 並べ替えを確定する。外した曲は並びに含めない */
-  const commit = (order: string[]) => {
-    setFavoriteOrder(
-      'songs',
-      order.filter((k) => !removed.has(`songs:${k}`)),
-    );
-  };
+  const commit = (order: string[]) => setFavoriteOrder('songs', order);
 
   /** 指の高さから、何番目に入れるかを決める。各行の真ん中より上なら、その行の前 */
   const targetIndex = (order: string[], key: string, clientY: number) => {
@@ -73,20 +65,20 @@ export function FavoriteSongs() {
       <div className="contents lg:sticky lg:top-20 lg:block">
         <PlayerStage
           active={here}
-          cover={kept[0] ? thumbOf(kept[0].videoId) : null}
+          cover={songs[0] ? thumbOf(songs[0].videoId) : null}
           label="お気に入りの曲を再生"
-          onPlay={() => kept.length > 0 && play()}
+          onPlay={() => songs.length > 0 && play()}
         />
         <div className="lg:mt-4">
           <Heading as="h1" size="page" eyebrow="Favorites">
             お気に入りの曲
           </Heading>
-          <p className="mt-1 text-muted">{kept.length} 曲</p>
+          <p className="mt-1 text-muted">{songs.length} 曲</p>
         </div>
         <div className="flex items-center gap-3 lg:mt-4">
           <button
             type="button"
-            disabled={kept.length === 0}
+            disabled={songs.length === 0}
             onClick={() => (here ? toggle() : play())}
             className="flex shrink-0 items-center gap-2 rounded-full bg-foreground py-2 pr-5 pl-4 text-sm font-bold whitespace-nowrap text-background transition-[opacity,scale] duration-150 ease-out hover:opacity-90 active:scale-95 disabled:opacity-40"
           >
@@ -104,7 +96,6 @@ export function FavoriteSongs() {
         <ol>
           {shown.map((song, i) => {
             const key = songKeyOf(song);
-            const gone = isRemoved(song);
             const active =
               here && current?.videoId === song.videoId && current.albumId === song.albumId;
             const lifted = dragging?.key === key;
@@ -115,20 +106,19 @@ export function FavoriteSongs() {
                   if (el) rows.current.set(key, el);
                   else rows.current.delete(key);
                 }}
-                className={`group flex items-center rounded-md pr-1 transition-[background-color,opacity] duration-150 ${
+                className={`group flex items-center rounded-md pr-1 transition-colors duration-150 ${
                   lifted
                     ? 'bg-foreground/15 shadow-lg'
                     : active
                       ? 'bg-sidebar/60'
                       : 'hover:bg-foreground/8'
-                } ${gone ? 'opacity-50' : ''}`}
+                }`}
               >
                 {/* 並べ替えのつまみ。ドラッグで動かす。キーボードでは上下の矢印で1つずつ動かす */}
                 <button
                   type="button"
                   aria-label={`${song.title}を並べ替え`}
-                  disabled={gone}
-                  className="grid h-12 w-8 shrink-0 cursor-grab touch-none place-items-center text-muted hover:text-foreground active:cursor-grabbing disabled:invisible"
+                  className="grid h-12 w-8 shrink-0 cursor-grab touch-none place-items-center text-muted hover:text-foreground active:cursor-grabbing"
                   onPointerDown={(e) => {
                     e.currentTarget.setPointerCapture(e.pointerId);
                     setDragging({ key, order: songs.map(songKeyOf) });
@@ -158,7 +148,6 @@ export function FavoriteSongs() {
                 </button>
                 <button
                   type="button"
-                  disabled={gone}
                   onClick={() => play(song)}
                   className={`flex min-w-0 flex-1 items-center gap-3 py-1.5 pr-2 text-left ${
                     active ? 'font-bold' : ''

@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { ARTIST_GRID, COVER_GRID, CoverCard } from '@/components/cover-card';
 import Link from 'next/link';
-import { useLibraryKept } from '@/components/favorites/use-library';
+import { useLibrary } from '@/components/favorites/use-library';
 import { SongList } from '@/components/song-list';
 import { Heading } from '@/components/heading';
 
@@ -15,7 +15,7 @@ const EYEBROW: Record<string, string> = {
 };
 
 export function LibraryContent() {
-  const { ready, songs, albums, artists } = useLibraryKept();
+  const { ready, songs, albums, artists } = useLibrary();
 
   if (!ready) return <p className="pt-8 text-muted">読み込んでいます…</p>;
   if (songs.length + albums.length + artists.length === 0) {
@@ -27,7 +27,7 @@ export function LibraryContent() {
       {songs.length > 0 && (
         <Section title="楽曲" count={songs.length} href="/library/songs">
           {/* 出し入れと並べ替えは、すべて表示の先（お気に入りの曲の画面）でする */}
-          <SongList songs={songs.slice(0, 10)} favorites={songs} hearts={false} />
+          <SongList songs={songs.slice(0, 10)} favorites={songs} />
         </Section>
       )}
       {albums.length > 0 && (

@@ -72,26 +72,10 @@ export function subscribeFavorites(onChange: () => void): () => void {
   };
 }
 
-/**
- * 外したばかりのものの元の位置。外したあと同じ画面でもう一度入れたら、先頭ではなく元の位置に戻す。
- * 開いているあいだだけ覚えておけばよいので、保存はしない
- */
-const removedAt = new Map<string, number>();
-
+/** 入れたものは先頭に足す。外したものはその場で消す */
 export function toggleFavorite(kind: FavoriteKind, key: string): void {
   const list = getFavorites()[kind];
-  const at = list.indexOf(key);
-  let next: string[];
-  if (at >= 0) {
-    removedAt.set(`${kind}:${key}`, at);
-    next = list.filter((k) => k !== key);
-  } else {
-    const back = removedAt.get(`${kind}:${key}`);
-    removedAt.delete(`${kind}:${key}`);
-    next = [...list];
-    next.splice(back === undefined ? 0 : Math.min(back, next.length), 0, key);
-  }
-  write(kind, next);
+  write(kind, list.includes(key) ? list.filter((k) => k !== key) : [key, ...list]);
 }
 
 /** 並べ替え。見えている順に鍵を並べて渡す。掲載を外して見えなくなった鍵は、後ろにそのまま残す */

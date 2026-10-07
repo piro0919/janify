@@ -19,8 +19,6 @@ export function SongList({
   songs,
   columns,
   favorites,
-  removed,
-  hearts = true,
 }: {
   songs: QueueItem[];
   columns?: boolean;
@@ -29,16 +27,11 @@ export function SongList({
    * お気に入りの並び順で流れる（トップやライブラリのお気に入りの棚。songs はその一部のこともある）
    */
   favorites?: QueueItem[];
-  /** 開いているあいだに外したお気に入り（`songs:鍵`）。行を薄く出す */
-  removed?: Set<string>;
-  /**
-   * 行のハートを出すか。お気に入りの棚（トップ・ライブラリ）は全部お気に入りなので出さない。
-   * トップの人気曲の棚も、外せても使い道が薄いので出さない。
-   * お気に入りの出し入れは、お気に入りの曲の画面でする
-   */
-  hearts?: boolean;
 }) {
   const { current, playing, playQueue } = usePlayer();
+  // ハートは、曲を1曲ずつ扱う一覧（検索の結果など）にだけ出す。横に流す棚（人気曲・よく収録されている曲）と、
+  // お気に入りの一覧（全部お気に入りなので意味がない）には出さない。出し入れはアルバムの曲目とお気に入りの曲の画面でもできる
+  const hearts = !columns && !favorites;
   const router = useRouter();
   return (
     <div
@@ -54,11 +47,10 @@ export function SongList({
     >
       {songs.map((song, i) => {
         const active = current?.videoId === song.videoId && current.albumId === song.albumId;
-        const gone = removed?.has(`songs:${songKeyOf(song)}`);
         return (
           <div
             key={`${song.albumId}:${song.videoId}`}
-            className={`group flex min-w-0 snap-start items-center rounded-md pr-1 transition-[background-color,opacity] duration-150 ${active ? 'bg-sidebar/60' : 'hover:bg-foreground/8'} ${gone ? 'opacity-50' : ''}`}
+            className={`group flex min-w-0 snap-start items-center rounded-md pr-1 transition-colors duration-150 ${active ? 'bg-sidebar/60' : 'hover:bg-foreground/8'}`}
           >
             <button
               type="button"

@@ -3,16 +3,16 @@
 import { ARTIST_SHELF_ITEM, CoverCard, SHELF_ITEM } from '../cover-card';
 import { Shelf } from '../shelf';
 import { SongList } from '../song-list';
-import { useLibraryKept } from './use-library';
+import { useLibrary } from './use-library';
 
 /** トップの一番上に出すお気に入りの棚。お気に入りが無ければ何も出さない */
 export function FavoriteShelves() {
-  const { songs, albums, artists } = useLibraryKept();
+  const { songs, albums, artists } = useLibrary();
   return (
     <>
       {songs.length > 0 && (
         <Shelf title="お気に入りの曲" eyebrow="Favorites" href="/library/songs">
-          <SongList songs={songs.slice(0, 24)} favorites={songs} hearts={false} columns />
+          <SongList songs={songs.slice(0, 24)} favorites={songs} columns />
         </Shelf>
       )}
       {albums.length > 0 && (
