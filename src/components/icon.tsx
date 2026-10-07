@@ -35,6 +35,7 @@ const PATHS = {
   repeat: 'M7 7h10v3l4-4-4-4v3H5v6h2zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2z',
   repeatOne: 'M7 7h10v3l4-4-4-4v3H5v6h2zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2zm-4-2V9h-1l-2 1v1h1.5v4z',
   install: 'M5 20h14v-2H5zM19 9h-4V3H9v6H5l7 7z',
+  down: 'M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z',
   left: 'M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z',
   right: 'M8.59 16.59 10 18l6-6-6-6-1.41 1.41L13.17 12z',
 } as const;
