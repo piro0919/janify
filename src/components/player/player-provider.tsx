@@ -539,7 +539,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     <Context value={value}>
       {children}
       {/*
-        右下の窓の上に付ける帯。押すと曲の入ったアルバムの画面に移り、そこで大きく出る。
+        右下の窓の上に付ける帯。押すと曲の入ったアルバムの画面（お気に入りの並びなら、お気に入りの曲の画面）に移り、そこで大きく出る。
         窓の中は YouTube のプレイヤーで、押すと YouTube 側の操作になるので、入口は窓の外に置く
       */}
       <div
@@ -549,7 +549,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       >
         {shown && (
           <Link
-            href={`/albums/${shown.albumId}`}
+            // お気に入りの並びで流しているときは、お気に入りの曲の画面で大きく出す（アルバムの画面では大きく出ない）
+            href={context === 'favorites' ? '/library/songs' : `/albums/${shown.albumId}`}
             className="flex h-full min-w-0 flex-1 items-center gap-2 pl-3 text-xs text-muted transition-colors hover:text-foreground"
           >
             <span className="min-w-0 flex-1 truncate">
