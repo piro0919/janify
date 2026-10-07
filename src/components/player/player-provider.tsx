@@ -387,6 +387,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         if (!slot.isConnected) return;
         const r = slot.getBoundingClientRect();
         if (r.width === 0) return;
+        // プレイヤーはページの外側の層にあり、ページの中のヘッダーより上に描かれる。
+        // スクロールでヘッダーの下に潜った分は、上側を切り取って見せない（スマホは置き場所を貼り付けないので潜る）
+        const headerBottom = document.querySelector('header')?.getBoundingClientRect().bottom ?? 0;
+        const hidden = Math.max(0, Math.min(r.height, headerBottom - r.top));
+        el.style.clipPath = hidden > 0 ? `inset(${hidden}px 0 0 0)` : '';
         el.style.top = `${r.top}px`;
         el.style.left = `${r.left}px`;
         el.style.width = `${r.width}px`;
@@ -414,6 +419,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       el.style.removeProperty('left');
       el.style.removeProperty('width');
       el.style.removeProperty('height');
+      el.style.removeProperty('clip-path');
       // 右下の窓は画面に固定なので、大きさが変わるのは画面の幅が変わったときだけ
       const remember = () => {
         lastBox.current = el.getBoundingClientRect();
