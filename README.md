@@ -28,7 +28,13 @@ pnpm test       # Vitest
 pnpm test:e2e   # Playwright。本番のビルドを立ち上げて、パソコンとスマホの幅で確かめる
 ```
 
-コミットのときに lefthook が整形・lint・型・秘密情報の検査を回します。
+コミットのときに lefthook が整形・lint・型・秘密情報の検査を回します。GitHub Actions では、main への push とプルリクエストで同じ検査・ビルド・E2E を回します。
+
+掲載中の動画がまだ流せるかは、毎週月曜に Actions が確かめます。流せない動画があると失敗してメールが届きます。手元で見るときは次のとおりです。
+
+```bash
+pnpm youtube:check
+```
 
 ## データ
 
