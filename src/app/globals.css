@@ -12,7 +12,6 @@
 :root[data-theme='dark'] {
   --background: #0e0d12;
   --sidebar: #09080c;
-  --bar: #18161f;
   --surface: #1f1d27;
   --line: #2c2a36;
   --foreground: #f3f2f7;
@@ -25,7 +24,6 @@
 :root[data-theme='light'] {
   --background: #f8f7fb;
   --sidebar: #efedf5;
-  --bar: #ffffff;
   --surface: #e9e6f1;
   --line: #dad6e4;
   --foreground: #18161f;
@@ -38,7 +36,6 @@
   :root:not([data-theme]) {
     --background: #f8f7fb;
     --sidebar: #efedf5;
-    --bar: #ffffff;
     --surface: #e9e6f1;
     --line: #dad6e4;
     --foreground: #18161f;
@@ -59,7 +56,6 @@
 @theme inline {
   --color-background: var(--background);
   --color-sidebar: var(--sidebar);
-  --color-bar: var(--bar);
   --color-surface: var(--surface);
   --color-line: var(--line);
   --color-foreground: var(--foreground);

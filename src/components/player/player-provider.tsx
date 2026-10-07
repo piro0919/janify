@@ -543,7 +543,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       <div
         aria-hidden={mode !== 'dock'}
         inert={mode !== 'dock'}
-        className={`chrome-bottom ${DOCK_STRIP} ${FADE} z-30 flex items-center rounded-t-lg bg-bar ${mode === 'dock' ? '' : HIDDEN}`}
+        className={`chrome-bottom ${DOCK_STRIP} ${FADE} z-30 flex items-center rounded-t-lg bg-sidebar/60 backdrop-blur-lg backdrop-saturate-150 ${mode === 'dock' ? '' : HIDDEN}`}
       >
         {shown && (
           <Link
