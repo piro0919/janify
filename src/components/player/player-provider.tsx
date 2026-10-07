@@ -543,7 +543,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       <div
         aria-hidden={mode !== 'dock'}
         inert={mode !== 'dock'}
-        className={`${DOCK_STRIP} ${FADE} z-30 flex items-center rounded-t-lg bg-bar ${mode === 'dock' ? '' : HIDDEN}`}
+        className={`chrome-bottom ${DOCK_STRIP} ${FADE} z-30 flex items-center rounded-t-lg bg-bar ${mode === 'dock' ? '' : HIDDEN}`}
       >
         {shown && (
           <Link
@@ -576,7 +576,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         className={
           mode === 'slot'
             ? 'fixed z-10 overflow-hidden rounded-lg bg-black [&>iframe]:size-full'
-            : `${DOCK} ${FADE} z-30 overflow-hidden rounded-b-lg bg-black shadow-2xl shadow-black/20 dark:shadow-black/60 [&>iframe]:size-full ${mode === 'none' ? HIDDEN : ''}`
+            : `chrome-bottom ${DOCK} ${FADE} z-30 overflow-hidden rounded-b-lg bg-black shadow-2xl shadow-black/20 dark:shadow-black/60 [&>iframe]:size-full ${mode === 'none' ? HIDDEN : ''}`
         }
       />
       <PlayerBar item={shown} open={mode !== 'none'} />

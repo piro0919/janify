@@ -7,6 +7,7 @@ import { Header } from '@/components/header';
 import { HeaderBar } from '@/components/header-bar';
 import { MobileTabs, Sidebar } from '@/components/nav';
 import { PlayerProvider } from '@/components/player/player-provider';
+import { ScrollChrome } from '@/components/scroll-chrome';
 import { Progress } from '@/components/progress';
 import { themeScript } from '@/components/theme/theme-script';
 import { ThemeWatcher } from '@/components/theme/theme-watcher';
@@ -106,6 +107,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
           </PlayerProvider>
         </Progress>
         <ThemeWatcher />
+        <ScrollChrome />
         <Analytics />
       </body>
     </html>

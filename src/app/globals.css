@@ -74,6 +74,39 @@ body {
   color: var(--foreground);
 }
 
+/*
+ * スマホで下へスクロールしているあいだ（scroll-chrome.tsx が印を付ける）、上の帯と下のタブを隠し、
+ * 下の帯と右下の窓をタブの分（3.5rem）だけ下へずらす
+ */
+@media (max-width: 47.99rem) {
+  /* もともとの出入りや地の色の動きも、ここでまとめて指定する（クラスの指定より、こちらが勝つため） */
+  .chrome-header {
+    transition:
+      translate 250ms var(--ease-out),
+      background-color 200ms,
+      backdrop-filter 200ms;
+  }
+  .chrome-tabs {
+    transition: translate 250ms var(--ease-out);
+  }
+  .chrome-bottom {
+    transition:
+      translate 300ms var(--ease-out),
+      opacity 300ms var(--ease-out),
+      visibility 300ms,
+      margin-bottom 250ms var(--ease-out);
+  }
+  html[data-chrome='hidden'] .chrome-header {
+    translate: 0 -100%;
+  }
+  html[data-chrome='hidden'] .chrome-tabs {
+    translate: 0 100%;
+  }
+  html[data-chrome='hidden'] .chrome-bottom {
+    margin-bottom: -3.5rem;
+  }
+}
+
 /* 再生中の印の棒の伸び縮み */
 @keyframes eq {
   0%,
