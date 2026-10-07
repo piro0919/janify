@@ -13,7 +13,10 @@ const GLIDE_MS = 500;
 /** ゆっくり動き出して、ゆっくり止まる */
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
-/** 見出しの付いた、横に流せる棚。左右の矢印で1画面ぶん送る */
+/**
+ * 見出しの付いた、横に流せる棚。左右の矢印で1画面ぶん送る。
+ * 棚と棚の間は、スマホでは詰める（縦に長い画面で棚を次々に流して見ると、空きが積み重なって間延びする）
+ */
 export function Shelf({
   title,
   eyebrow,
@@ -96,7 +99,7 @@ export function Shelf({
   };
 
   return (
-    <section className="mt-10 first:mt-4">
+    <section className="mt-7 first:mt-2 sm:mt-10 sm:first:mt-4">
       <div className="mb-2 flex items-end gap-3">
         <Heading eyebrow={eyebrow}>{title}</Heading>
         <div className="ml-auto flex items-center gap-2">

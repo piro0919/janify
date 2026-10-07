@@ -27,7 +27,7 @@ export default async function DecadePage({ params }: PageProps<'/decades/[decade
   if (!found) notFound();
   return (
     <>
-      <div className="pt-4 pb-6">
+      <div className="pt-4 pb-4 sm:pb-6">
         <Heading as="h1" size="page" eyebrow={`The ${found.decade}s`}>
           {found.decade}年代
         </Heading>

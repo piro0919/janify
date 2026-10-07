@@ -95,7 +95,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mt-10 first:mt-4">
+    <section className="mt-7 first:mt-2 sm:mt-10 sm:first:mt-4">
       <div className="mb-4 flex items-end gap-3">
         <Heading eyebrow={EYEBROW[title]}>{title}</Heading>
         <span className="pb-1 text-sm text-muted">

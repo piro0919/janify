@@ -65,7 +65,7 @@ function useInstall(): {
 export function InstallApp() {
   const { isInstalled, available, start, guide } = useInstall();
   return (
-    <section className="mt-10">
+    <section className="mt-7 sm:mt-10">
       <h2 className="mb-3 font-bold">アプリ</h2>
       {isInstalled ? (
         <p className="px-3 text-sm text-muted">ホーム画面に追加済みです。</p>

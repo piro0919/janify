@@ -73,7 +73,7 @@ export default async function ArtistPage({ params }: PageProps<'/artists/[id]'>)
           <SongList songs={songs} columns />
         </Shelf>
       )}
-      <div className="mt-10 mb-4">
+      <div className="mt-7 mb-4 sm:mt-10">
         <Heading eyebrow="Discography">アルバム</Heading>
       </div>
       <AlbumGrid

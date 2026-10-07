@@ -82,7 +82,7 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="mt-10 first:mt-6">
+    <section className="mt-7 first:mt-4 sm:mt-10 sm:first:mt-6">
       <div className="mb-4 flex items-end gap-3">
         <Heading eyebrow={EYEBROW[title]}>{title}</Heading>
         <span className="pb-1 text-sm text-muted">{count} 件</span>
