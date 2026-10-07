@@ -6,7 +6,7 @@
 
 ## ✨ Features
 
-- 💿 Browse 41 artists and 396 albums by artist, by album or by decade, with each artist's YouTube channel icon
+- 💿 Browse 43 artists and 412 albums by artist, by album or by decade, with each artist's YouTube channel icon
 - ▶️ Play a whole album in order, with shuffle and repeat
 - 🎬 One player for the whole site, so playback continues while you browse
 - 📲 A full-screen player view on phones; pull the title down to shrink the player to a corner
