@@ -162,6 +162,8 @@ function Progress({
 }) {
   const fill = useRef<HTMLSpanElement>(null);
   const knob = useRef<HTMLSpanElement>(null);
+  // 指（マウス）を動かしているあいだだけ出す、飛び先の時間。スマホは時間の表示が無いので、これが頼り
+  const bubble = useRef<HTMLSpanElement>(null);
   // ドラッグ中は、再生の進みではなく指の位置を描く
   const dragging = useRef<number | null>(null);
 
@@ -170,6 +172,19 @@ function Progress({
     // Tailwind の scale-x-0 は transform ではなく scale を使うので、こちらも scale で上書きする
     if (fill.current) fill.current.style.scale = `${r} 1`;
     if (knob.current) knob.current.style.left = `${r * 100}%`;
+  };
+
+  /** 飛び先の時間を出す。null で隠す。画面の端で切れないよう、位置は端から少し内側に収める */
+  const showBubble = (ratio: number | null) => {
+    const el = bubble.current;
+    if (!el) return;
+    if (ratio === null) {
+      el.dataset.shown = 'false';
+      return;
+    }
+    el.textContent = clock(ratio * time.duration);
+    el.style.left = `clamp(1.75rem, ${ratio * 100}%, calc(100% - 1.75rem))`;
+    el.dataset.shown = 'true';
   };
 
   useEffect(() => {
@@ -203,36 +218,51 @@ function Progress({
         e.currentTarget.setPointerCapture(e.pointerId);
         dragging.current = ratioAt(e.currentTarget, e.clientX);
         paint(dragging.current);
+        showBubble(dragging.current);
       }}
       onPointerMove={(e) => {
         if (dragging.current === null) return;
         dragging.current = ratioAt(e.currentTarget, e.clientX);
         paint(dragging.current);
+        showBubble(dragging.current);
       }}
       onPointerUp={(e) => {
         if (dragging.current === null) return;
         onSeek(ratioAt(e.currentTarget, e.clientX) * time.duration);
         dragging.current = null;
+        showBubble(null);
       }}
       onPointerCancel={() => {
         dragging.current = null;
+        showBubble(null);
       }}
       onKeyDown={(e) => {
         if (e.key === 'ArrowRight') onSeek(Math.min(time.duration, current + 5));
         if (e.key === 'ArrowLeft') onSeek(Math.max(0, current - 5));
       }}
-      // 当たり判定は見た目の線より広くとる。線は帯の上の縁に重ねる
-      className="group absolute inset-x-0 -top-2 h-4 cursor-pointer touch-none outline-none"
+      // 当たり判定は見た目の線より広くとる。線は帯の上の縁に重ねる。
+      // スマホは指で狙うので、上へ広げる（下へ広げると曲名や再生ボタンに重なる）
+      className="group absolute inset-x-0 -top-2 h-4 cursor-pointer touch-none outline-none max-md:-top-6 max-md:h-8"
     >
-      <span className="absolute inset-x-0 top-1.5 h-1 bg-line transition-[height,top] duration-150 group-hover:top-[5px] group-hover:h-1.5" />
       <span
-        ref={fill}
-        className="absolute inset-x-0 top-1.5 h-1 origin-left scale-x-0 bg-accent transition-[height,top] duration-150 group-hover:top-[5px] group-hover:h-1.5"
+        ref={bubble}
+        aria-hidden
+        data-shown="false"
+        className="pointer-events-none absolute bottom-5 -translate-x-1/2 rounded-md bg-foreground px-2 py-0.5 text-xs font-bold tabular-nums text-background opacity-0 shadow transition-opacity duration-150 data-[shown=true]:opacity-100"
       />
-      <span
-        ref={knob}
-        className="absolute top-2 size-3 -translate-1/2 scale-0 rounded-full bg-accent shadow transition-[scale] duration-150 group-hover:scale-100 group-focus-visible:scale-100 group-active:scale-100"
-      />
+      {/* 見た目の線とつまみは、当たり判定の下の端に置く（スマホで当たり判定を上へ広げても、線の位置は変わらない） */}
+      <span className="absolute inset-x-0 bottom-0 h-4">
+        <span className="absolute inset-x-0 top-1.5 h-1 bg-line transition-[height,top] duration-150 group-hover:top-[5px] group-hover:h-1.5" />
+        <span
+          ref={fill}
+          className="absolute inset-x-0 top-1.5 h-1 origin-left scale-x-0 bg-accent transition-[height,top] duration-150 group-hover:top-[5px] group-hover:h-1.5"
+        />
+        <span
+          ref={knob}
+          // マウスの無い端末では、どこを狙えばよいか分かるよう、つまみを常に出す
+          className="absolute top-2 size-3 -translate-1/2 scale-0 rounded-full bg-accent shadow transition-[scale] duration-150 group-hover:scale-100 group-focus-visible:scale-100 group-active:scale-100 [@media(hover:none)]:scale-100"
+        />
+      </span>
     </div>
   );
 }
