@@ -28,7 +28,8 @@ export default function Home() {
       <JsonLd data={jsonLd} />
       <FavoriteShelves />
       <Shelf title="人気曲" eyebrow="Popular">
-        <SongList songs={popularSongs(24)} columns />
+        {/* トップでお気に入りを外せても使い道が薄いので、ハートは出さない。入れるのはアルバムの画面や検索から */}
+        <SongList songs={popularSongs(24)} columns hearts={false} />
       </Shelf>
 
       <AlbumShelf

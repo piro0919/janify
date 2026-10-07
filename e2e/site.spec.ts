@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 
 test('トップに棚が並び、横にはみ出さない', async ({ page }) => {
   await page.goto('/');
@@ -45,9 +45,25 @@ test('人気曲を押すと、曲の入ったアルバムの画面へ移り、�
   }
 });
 
+/**
+ * 曲目にハートが min 個以上あるアルバムの画面を、新しい順に探して開く。
+ * トップの人気曲にはハートが無いので、曲のお気に入りはここから入れる。動画の無い曲にはハートが無い
+ */
+async function openAlbumWithSongs(page: Page, min: number) {
+  await page.goto('/albums');
+  const hrefs = await page
+    .locator('main a[href^="/albums/"]')
+    .evaluateAll((links) => links.slice(0, 20).map((a) => a.getAttribute('href') ?? ''));
+  for (const href of hrefs) {
+    await page.goto(href);
+    const hearts = page.locator('ol li').getByRole('button', { name: /をお気に入りに追加$/ });
+    if ((await hearts.count()) >= min) return hearts;
+  }
+  throw new Error(`曲が ${min} 曲以上あるアルバムが見つからない`);
+}
+
 test('お気に入りに入れた曲がライブラリに出て、開き直しても残る', async ({ page }) => {
-  await page.goto('/');
-  const heart = page.getByRole('button', { name: /をお気に入りに追加$/ }).first();
+  const heart = (await openAlbumWithSongs(page, 1)).first();
   const label = (await heart.getAttribute('aria-label')) ?? '';
   const title = label.replace(/をお気に入りに追加$/, '');
   await heart.click();
@@ -72,9 +88,8 @@ test('設定で明るいテーマを選ぶと切り替わり、開き直して�
 test('お気に入りの曲の画面で並べ替えると、その順が残り、押した曲はその画面のまま流れる', async ({
   page,
 }) => {
-  await page.goto('/');
-  // 人気曲から3曲をお気に入りに入れる
-  const hearts = page.getByRole('button', { name: /をお気に入りに追加$/ });
+  // アルバムの曲目から3曲をお気に入りに入れる
+  const hearts = await openAlbumWithSongs(page, 3);
   for (let i = 0; i < 3; i++) await hearts.first().click();
 
   await page.goto('/library/songs');
