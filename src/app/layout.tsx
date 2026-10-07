@@ -2,14 +2,12 @@ import { Analytics } from '@vercel/analytics/next';
 import type { Metadata, Viewport } from 'next';
 import { Playfair_Display, Shippori_Mincho_B1, Zen_Kaku_Gothic_New } from 'next/font/google';
 import Link from 'next/link';
-import { Suspense } from 'react';
 import { AmbientProvider } from '@/components/ambient';
 import { Header } from '@/components/header';
-import { Icon } from '@/components/icon';
-import { Logo, MobileTabs, Sidebar } from '@/components/nav';
+import { HeaderBar } from '@/components/header-bar';
+import { MobileTabs, Sidebar } from '@/components/nav';
 import { PlayerProvider } from '@/components/player/player-provider';
 import { Progress } from '@/components/progress';
-import { SearchBox } from '@/components/search-box';
 import { themeScript } from '@/components/theme/theme-script';
 import { ThemeWatcher } from '@/components/theme/theme-watcher';
 import { CONTACT_FORM_URL, OPERATOR, SITE_URL } from '@/lib/site';
@@ -80,21 +78,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
                 <Sidebar />
                 <div className="flex min-w-0 flex-1 flex-col">
                   <Header>
-                    <div className="shrink-0 md:hidden">
-                      <Logo />
-                    </div>
-                    {/* 検索欄は URL の語を読むので、静的に書き出す画面では Suspense で包む */}
-                    <Suspense fallback={<div className="h-10 w-full max-w-xl" />}>
-                      <SearchBox />
-                    </Suspense>
-                    {/* スマホは左のメニューが出ないので、設定への入口を上の帯の右端に置く（YouTube Music のアプリと同じ） */}
-                    <Link
-                      href="/settings"
-                      aria-label="設定"
-                      className="grid size-10 shrink-0 place-items-center rounded-full text-muted transition-colors hover:text-foreground md:hidden"
-                    >
-                      <Icon name="settings" className="size-5" />
-                    </Link>
+                    <HeaderBar />
                   </Header>
                   <main className="flex-1 px-4 pb-12 sm:px-8">{children}</main>
                   <footer className="page-bottom flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-line px-4 pt-6 text-sm text-muted sm:px-8">

@@ -8,7 +8,7 @@ import { Icon } from './icon';
  * 上の帯の検索欄。打つと少し待ってから検索の画面へ移り、結果をその場で絞る。
  * 日本語の変換中に URL を書き換えると入力が崩れるので、変換が終わるまでは送らない
  */
-export function SearchBox() {
+export function SearchBox({ autoFocus }: { autoFocus?: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -60,6 +60,7 @@ export function SearchBox() {
           }}
           placeholder="曲、アルバム、アーティストを検索"
           aria-label="検索"
+          autoFocus={autoFocus}
           className="h-10 w-full rounded-lg border border-line/60 bg-sidebar/60 pr-3 pl-10 text-sm placeholder:text-muted focus:border-foreground/30 focus:outline-none"
         />
       </form>

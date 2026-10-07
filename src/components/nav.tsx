@@ -19,7 +19,7 @@ function useActive() {
 }
 
 /** ロゴ。開いたときに一度だけ、マウスを載せるともう一度、きらめきが字の上を走る（globals.css の .logo） */
-export function Logo() {
+export function Logo({ compact }: { compact?: boolean }) {
   return (
     <Link href="/" aria-label="Janify ホーム" className="flex items-center gap-2">
       {/* アプリのアイコン（scripts/build-icons.py が書き出したもの）を、角を丸めたタイルとして添える */}
@@ -31,10 +31,13 @@ export function Logo() {
         className="rounded-md"
         priority
       />
-      <span className="logo text-2xl">
-        <span>Jani</span>
-        <span className="text-accent">fy</span>
-      </span>
+      {/* スマホの上の帯では、検索の虫めがねと歯車を並べるので、アイコンだけにする */}
+      {!compact && (
+        <span className="logo text-2xl">
+          <span>Jani</span>
+          <span className="text-accent">fy</span>
+        </span>
+      )}
     </Link>
   );
 }
