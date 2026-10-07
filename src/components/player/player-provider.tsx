@@ -140,12 +140,16 @@ export function usePlayer(): PlayerContext {
   return ctx;
 }
 
-/** 右下の窓の位置と大きさ。スマホでは下のタブと帯の上、パソコンでは帯の上 */
+/**
+ * 右下の窓の位置と大きさ。スマホでは下のタブと帯の上、パソコンでは帯の上。
+ * スマホは画面が狭いので、規約の下限（200×200）ちょうどの正方形にする。16:9 の動画は窓の中で上下に黒い帯が入る。
+ * パソコンは 16:9 の 356×200
+ */
 const DOCK =
-  'fixed right-4 bottom-[calc(7.5rem+12px)] h-[200px] w-[min(356px,calc(100vw-2rem))] md:bottom-[calc(4rem+16px)]';
+  'fixed right-4 bottom-[calc(7.5rem+12px)] h-[200px] w-[200px] md:bottom-[calc(4rem+16px)] md:w-[356px]';
 /** 窓のすぐ上に付ける帯 */
 const DOCK_STRIP =
-  'fixed right-4 bottom-[calc(7.5rem+12px+200px)] h-9 w-[min(356px,calc(100vw-2rem))] md:bottom-[calc(4rem+16px+200px)]';
+  'fixed right-4 bottom-[calc(7.5rem+12px+200px)] h-9 w-[200px] md:bottom-[calc(4rem+16px+200px)] md:w-[356px]';
 /** 出入りの動き。閉じたあとは少し下へずらして消す */
 const FADE = 'transition-[opacity,translate,visibility] duration-300 ease-(--ease-out)';
 const HIDDEN = 'pointer-events-none invisible translate-y-4 opacity-0';

@@ -12,7 +12,10 @@ test('トップに棚が並び、横にはみ出さない', async ({ page }) => 
 
 test('検索欄に打つと、検索の画面で結果が絞られる', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('searchbox', { name: '検索' }).fill('love');
+  // スマホの幅では、検索欄は虫めがねの中にしまってある
+  const opener = page.getByRole('button', { name: '検索', exact: true });
+  if (await opener.isVisible()) await opener.click();
+  await page.getByRole('searchbox', { name: '検索' }).locator('visible=true').fill('love');
   await expect(page).toHaveURL(/\/search\?q=love/);
   await expect(page.getByRole('heading', { name: /楽曲/ })).toBeVisible();
 });
