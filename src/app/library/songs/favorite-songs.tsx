@@ -118,6 +118,8 @@ export function FavoriteSongs() {
                 <button
                   type="button"
                   aria-label={`${song.title}を並べ替え`}
+                  // 上下の矢印は並べ替えに使うので、プレイヤーのキー操作（player-keys.tsx）に渡さない
+                  data-own-keys
                   className="grid h-12 w-8 shrink-0 cursor-grab touch-none place-items-center text-muted hover:text-foreground active:cursor-grabbing"
                   onPointerDown={(e) => {
                     e.currentTarget.setPointerCapture(e.pointerId);

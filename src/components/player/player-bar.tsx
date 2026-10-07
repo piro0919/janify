@@ -141,7 +141,7 @@ export function PlayerBar({ item, open }: { item: QueueItem | null; open: boolea
 }
 
 /** 拾った時刻から、今の時刻を補う。再生中だけ進める */
-function now(time: PlaybackTime, playing: boolean): number {
+export function now(time: PlaybackTime, playing: boolean): number {
   const elapsed = playing ? (performance.now() - time.at) / 1000 : 0;
   return Math.min(time.current + elapsed, time.duration || Infinity);
 }

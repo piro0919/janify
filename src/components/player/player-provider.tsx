@@ -17,6 +17,7 @@ import { EASE_OUT, prefersReducedMotion } from '@/lib/motion';
 import { Icon } from '../icon';
 import { PlayerBar } from './player-bar';
 import { loadYouTubeApi, type YTPlayer } from './youtube';
+import { PlayerKeys } from './player-keys';
 import { useWakeLock } from './use-wake-lock';
 
 /**
@@ -583,6 +584,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         }
       />
       <PlayerBar item={shown} open={mode !== 'none'} />
+      <PlayerKeys />
     </Context>
   );
 }
