@@ -25,7 +25,11 @@
    - 申請者は個人ユーザー、組織名は kk-web、連絡先は piro.haniwa@gmail.com。返事はこのメールに来る
    - 検索は枠切れまで回る作りなので、通ってもスクリプトは直さなくてよい
    - フォーム: https://support.google.com/youtube/contact/yt_api_form
-4. 非公式の検索が進んだら、定期的に Notion へ反映して書き出す:
+4. あとで、ブラウザで落ちたことを知るために Sentry を入れる（2026-10-07 に後回しと決めた）
+   - サイトは全ページが静的で、実行時のサーバー処理が無い。koidamashii のようにサーバーだけに入れても何も届かない
+   - ブラウザに `@sentry/browser` を入れ、最初のエラーが起きたときに初めて読み込む形にする。普段の読み込みを増やさず、LCP を悪くしない
+   - Sentry に Janify 用のプロジェクトを作るのに本人のログインが要る。接続先は環境変数で渡す
+5. 非公式の検索が進んだら、定期的に Notion へ反映して書き出す:
 
    ```bash
    pnpm notion:videos && pnpm notion:export
