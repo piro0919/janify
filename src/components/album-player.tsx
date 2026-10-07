@@ -65,12 +65,18 @@ export function AlbumPlayer({
           label="このアルバムを再生"
           onPlay={() => start()}
         />
-        <div className="lg:mt-4">{heading}</div>
-        <div className="flex items-center gap-3 lg:mt-4">
+        <div className="lg:mt-4">
+          {heading}
+          {/* 曲数はボタンの並びに置くとスマホで折り返すので、題名の下に置く */}
+          <p className="mt-0.5 text-sm text-muted">
+            {queue.length} 曲{queue.length < tracks.length && `（全 ${tracks.length} 曲）`}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 lg:mt-4">
           <button
             type="button"
             onClick={() => (here ? toggle() : start())}
-            className="flex items-center gap-2 rounded-full bg-foreground py-2 pr-5 pl-4 text-sm font-bold text-background transition-[opacity,scale] duration-150 ease-out hover:opacity-90 active:scale-95"
+            className="flex shrink-0 items-center gap-2 rounded-full bg-foreground py-2 pr-5 pl-4 text-sm font-bold whitespace-nowrap text-background transition-[opacity,scale] duration-150 ease-out hover:opacity-90 active:scale-95"
           >
             <Icon name={here && playing ? 'pause' : 'play'} className="size-5" />
             {here && playing ? '一時停止' : '再生'}
@@ -84,9 +90,6 @@ export function AlbumPlayer({
           />
           {/* スマホは下の帯にランダムとループが入りきらないので、ここに置く */}
           <PlaybackMode className="md:hidden" />
-          <span className="text-sm text-muted">
-            {queue.length} 曲{queue.length < tracks.length && `（全 ${tracks.length} 曲）`}
-          </span>
         </div>
       </div>
 

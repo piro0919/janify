@@ -87,7 +87,7 @@ export function FavoriteSongs() {
             type="button"
             disabled={kept.length === 0}
             onClick={() => (here ? toggle() : play())}
-            className="flex items-center gap-2 rounded-full bg-foreground py-2 pr-5 pl-4 text-sm font-bold text-background transition-[opacity,scale] duration-150 ease-out hover:opacity-90 active:scale-95 disabled:opacity-40"
+            className="flex shrink-0 items-center gap-2 rounded-full bg-foreground py-2 pr-5 pl-4 text-sm font-bold whitespace-nowrap text-background transition-[opacity,scale] duration-150 ease-out hover:opacity-90 active:scale-95 disabled:opacity-40"
           >
             <Icon name={here && playing ? 'pause' : 'play'} className="size-5" />
             {here && playing ? '一時停止' : '再生'}
