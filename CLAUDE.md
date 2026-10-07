@@ -115,6 +115,11 @@
 - アイコンの原画は `src/assets/icon-source.png`（ChatGPT に描かせた、ロゴと同じ斜体のセリフ体の「J」ときらめき）。`python3 scripts/build-icons.py` が地を #0e0d12 に塗り直してから、favicon・apple-icon・icon.png・`public/icon-*.png` に書き出す。原画を差し替えたら流し直す
 - PWA の manifest は `src/app/manifest.ts`。「ホーム画面に追加」は設定の画面と上の帯の両方にある（`src/components/install-app.tsx`）
 
+## README と GitHub の About
+
+- 公開リポジトリなので、README は英語で書く（comic-time・kk-web・hawky と同じ。日本語の README は非公開のリポジトリだけ）。形は comic-time に合わせている
+- About は、説明・公開先（https://janify.kkweb.io/）・トピックを埋めてある。画面や機能が大きく変わったら README の Features と一緒に直す
+
 ## データの流れ
 
 正本は Notion（私物のワークスペースの「Janify」ページの下にある「アーティスト」「アルバム」「曲」）。
