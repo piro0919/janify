@@ -8,6 +8,7 @@ import { useLibrary } from '@/components/favorites/use-library';
 import { Icon } from '@/components/icon';
 import { Bars } from '@/components/now-playing';
 import { PlayerStage } from '@/components/player-stage';
+import { PlaybackMode } from '@/components/player/playback-mode';
 import { usePlayer } from '@/components/player/player-provider';
 import type { QueueItem } from '@/lib/catalog';
 import { songKeyOf } from '@/lib/library';
@@ -91,6 +92,8 @@ export function FavoriteSongs() {
             <Icon name={here && playing ? 'pause' : 'play'} className="size-5" />
             {here && playing ? '一時停止' : '再生'}
           </button>
+          {/* スマホは下の帯にランダムとループが入りきらないので、ここに置く */}
+          <PlaybackMode className="md:hidden" />
         </div>
       </div>
 

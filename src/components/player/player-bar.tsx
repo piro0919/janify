@@ -9,6 +9,7 @@ import { NO_RESTORE } from '@/lib/no-restore';
 import { FadeImage } from '../fade-image';
 import { HeartButton } from '../favorites/heart-button';
 import { Icon } from '../icon';
+import { PlaybackMode } from './playback-mode';
 import { type PlaybackTime, usePlayer } from './player-provider';
 
 /**
@@ -18,10 +19,10 @@ import { type PlaybackTime, usePlayer } from './player-provider';
  */
 export function PlayerBar({ item, open }: { item: QueueItem | null; open: boolean }) {
   const {
-    queue,
-    index,
     playing,
     loading,
+    hasPrev,
+    hasNext,
     toggle,
     step,
     close,
@@ -45,7 +46,7 @@ export function PlayerBar({ item, open }: { item: QueueItem | null; open: boolea
 
       <div className="flex h-full items-center gap-3 px-3 sm:gap-4 sm:px-4">
         <div className="flex items-center sm:gap-1">
-          <BarButton label="前の曲" disabled={index <= 0} onClick={() => step(-1)}>
+          <BarButton label="前の曲" disabled={!hasPrev} onClick={() => step(-1)}>
             <Icon name="prev" />
           </BarButton>
           <BarButton
@@ -60,7 +61,7 @@ export function PlayerBar({ item, open }: { item: QueueItem | null; open: boolea
               <Icon name={playing ? 'pause' : 'play'} />
             )}
           </BarButton>
-          <BarButton label="次の曲" disabled={index >= queue.length - 1} onClick={() => step(1)}>
+          <BarButton label="次の曲" disabled={!hasNext} onClick={() => step(1)}>
             <Icon name="next" />
           </BarButton>
         </div>
@@ -109,6 +110,7 @@ export function PlayerBar({ item, open }: { item: QueueItem | null; open: boolea
           音量。iPhone と iPad は埋め込みの音量を Web から変えられず、本体のボタンで調節する決まりなので、
           スマホの幅では出さない
         */}
+        <PlaybackMode className="hidden md:flex" />
         <div className="hidden items-center gap-1 md:flex">
           <BarButton label={muted ? '消音を解除' : '消音'} onClick={toggleMute}>
             <Icon

@@ -37,6 +37,15 @@ type PlayerContext = {
   /** 曲を選んでから音が出るまで。最初の1曲は YouTube の仕組みの読み込みも待つ */
   loading: boolean;
   context: PlayContext;
+  /** 前の曲・次の曲へ進めるか。ループ（全体）なら最後の曲からも次へ進める */
+  hasPrev: boolean;
+  hasNext: boolean;
+  /** ループ。all は並び全体を繰り返し、one は今の曲を繰り返す */
+  repeat: Repeat;
+  /** ランダム再生。いま流している並びの中で混ぜる */
+  shuffle: boolean;
+  toggleRepeat: () => void;
+  toggleShuffle: () => void;
   /** 曲の一覧を順番待ちに積み、start 番目から再生する */
   playQueue: (items: QueueItem[], start: number, context?: PlayContext) => void;
   /**
@@ -62,6 +71,45 @@ type PlayerContext = {
 const Context = createContext<PlayerContext | null>(null);
 
 const VOLUME_KEY = 'janify-volume';
+const PLAYBACK_KEY = 'janify-playback';
+
+export type Repeat = 'all' | 'one';
+
+/** 残しておいたループとランダムの設定。読めなければ、ループは全体、ランダムは切 */
+function savedPlayback(): { repeat: Repeat; shuffle: boolean } {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PLAYBACK_KEY) ?? 'null') as {
+      repeat?: unknown;
+      shuffle?: unknown;
+    } | null;
+    return { repeat: saved?.repeat === 'one' ? 'one' : 'all', shuffle: saved?.shuffle === true };
+  } catch {
+    return { repeat: 'all', shuffle: false };
+  }
+}
+
+function savePlayback(value: { repeat: Repeat; shuffle: boolean }) {
+  try {
+    localStorage.setItem(PLAYBACK_KEY, JSON.stringify(value));
+  } catch {
+    // 保存できない窓では、開き直すと元に戻る
+  }
+}
+
+/**
+ * 流す順。ランダムでなければ並びどおり、ランダムなら start を先頭にして残りを混ぜる。
+ * 前の曲へ戻ったときに同じ曲へ戻れるよう、混ぜた順は覚えておく
+ */
+function buildOrder(length: number, start: number, shuffle: boolean): number[] {
+  const order = Array.from({ length }, (_, i) => i);
+  if (!shuffle) return order;
+  const rest = order.filter((i) => i !== start);
+  for (let i = rest.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [rest[i], rest[j]] = [rest[j], rest[i]];
+  }
+  return [start, ...rest];
+}
 
 /** 残しておいた音量と消音。読めなければ 100 で消音なし */
 function savedVolume(): { volume: number; muted: boolean } {
@@ -126,6 +174,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   // 残しておいた音量は、最初に曲を流したときに読む（サーバーでは localStorage を読めず、帯も曲を流すまで出ない）
   const [sound, setSound] = useState({ volume: 100, muted: false });
   const soundRef = useRef<{ volume: number; muted: boolean } | null>(null);
+  // ループとランダム。音量と同じく、最初に曲を流したときに読む
+  const [playback, setPlayback] = useState<{ repeat: Repeat; shuffle: boolean }>({
+    repeat: 'all',
+    shuffle: false,
+  });
+  const playbackRef = useRef<{ repeat: Repeat; shuffle: boolean } | null>(null);
+  // 流す順（順番待ちの何番目を、どの順で流すか）と、いまその何番目にいるか
+  const order = useRef<number[]>([]);
+  const [position, setPosition] = useState(0);
+  const positionRef = useRef(0);
 
   const frame = useRef<HTMLDivElement>(null);
   const player = useRef<YTPlayer | null>(null);
@@ -140,6 +198,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       soundRef.current = savedVolume();
       setSound(soundRef.current);
     }
+    if (!playbackRef.current) {
+      playbackRef.current = savedPlayback();
+      setPlayback(playbackRef.current);
+    }
+    // 新しい並びなら流す順を作り直す。同じ並びの中で曲を移るだけなら、流す順はそのまま
+    if (items !== state.current.queue) {
+      order.current = buildOrder(items.length, at, playbackRef.current.shuffle);
+    }
+    positionRef.current = Math.max(0, order.current.indexOf(at));
+    setPosition(positionRef.current);
     state.current = { queue: items, index: at };
     setQueue(items);
     setIndex(at);
@@ -192,24 +260,68 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  useEffect(() => {
-    // 曲が終わったら、順番待ちの次の曲へ。最後の曲なら止まる
-    onEnded.current = () => {
-      const { queue: q, index: i } = state.current;
-      if (i + 1 < q.length) load(q, i + 1, contextRef.current);
-      else setPlaying(false);
-    };
-  }, [load]);
-
-  const step = useCallback(
+  /**
+   * 流す順で前後の曲へ。ループは全体なので、最後の曲の次は先頭へ戻る。
+   * ランダムのときは、ひと回りしたら混ぜ直す（同じ順の繰り返しにしない）
+   */
+  const next = useCallback(
     (dir: 1 | -1) => {
-      const { queue: q, index: i } = state.current;
-      if (q[i + dir]) load(q, i + dir, contextRef.current);
+      const { queue: q } = state.current;
+      if (q.length === 0) return;
+      let pos = positionRef.current + dir;
+      if (pos < 0) return;
+      if (pos >= order.current.length) {
+        const shuffle = playbackRef.current?.shuffle ?? false;
+        order.current = buildOrder(
+          q.length,
+          shuffle ? Math.floor(Math.random() * q.length) : 0,
+          shuffle,
+        );
+        pos = 0;
+      }
+      load(q, order.current[pos], contextRef.current);
     },
     [load],
   );
+  const step = next;
+
+  useEffect(() => {
+    // 曲が終わったら、ループが1曲なら頭から、そうでなければ流す順の次の曲へ（最後なら先頭に戻る）
+    onEnded.current = () => {
+      if (playbackRef.current?.repeat === 'one' && player.current) {
+        player.current.seekTo(0, true);
+        player.current.playVideo();
+        return;
+      }
+      next(1);
+    };
+  }, [next]);
+
+  const toggleShuffle = useCallback(() => {
+    const now = playbackRef.current ?? savedPlayback();
+    const value = { ...now, shuffle: !now.shuffle };
+    playbackRef.current = value;
+    setPlayback(value);
+    savePlayback(value);
+    // いまの曲を起点に、流す順を作り直す
+    const { queue: q, index: i } = state.current;
+    order.current = buildOrder(q.length, i, value.shuffle);
+    positionRef.current = Math.max(0, order.current.indexOf(i));
+    setPosition(positionRef.current);
+  }, []);
+
+  const toggleRepeat = useCallback(() => {
+    const now = playbackRef.current ?? savedPlayback();
+    const value = { ...now, repeat: now.repeat === 'all' ? ('one' as const) : ('all' as const) };
+    playbackRef.current = value;
+    setPlayback(value);
+    savePlayback(value);
+  }, []);
 
   const adopt = useCallback((items: QueueItem[], at: number) => {
+    order.current = buildOrder(items.length, at, playbackRef.current?.shuffle ?? false);
+    positionRef.current = Math.max(0, order.current.indexOf(at));
+    setPosition(positionRef.current);
     state.current = { queue: items, index: at };
     setContext('album');
     setQueue(items);
@@ -352,6 +464,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       playing,
       loading,
       context,
+      hasPrev: position > 0,
+      // ループは全体か1曲なので、並びが2曲以上あれば最後の曲からも次へ進める
+      hasNext: queue.length > 1,
+      repeat: playback.repeat,
+      shuffle: playback.shuffle,
+      toggleRepeat,
+      toggleShuffle,
       playQueue: load,
       adoptQueue: adopt,
       toggle: () => (playing ? player.current?.pauseVideo() : player.current?.playVideo()),
@@ -384,7 +503,24 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       },
       setSlot,
     }),
-    [queue, index, current, playing, loading, context, load, adopt, step, close, time, sound],
+    [
+      queue,
+      index,
+      current,
+      playing,
+      loading,
+      context,
+      position,
+      playback,
+      toggleRepeat,
+      toggleShuffle,
+      load,
+      adopt,
+      step,
+      close,
+      time,
+      sound,
+    ],
   );
 
   return (

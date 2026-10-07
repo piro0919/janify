@@ -9,6 +9,7 @@ import { Icon } from './icon';
 import { Bars } from './now-playing';
 import { PlayerStage } from './player-stage';
 import { usePlayer } from './player/player-provider';
+import { PlaybackMode } from './player/playback-mode';
 
 /**
  * アルバムの画面。左に大きなプレイヤーの置き場所、右に曲目。
@@ -82,6 +83,8 @@ export function AlbumPlayer({
             className="size-10"
             size="size-6"
           />
+          {/* スマホは下の帯にランダムとループが入りきらないので、ここに置く */}
+          <PlaybackMode className="md:hidden" />
           <span className="text-sm text-muted">
             {queue.length} 曲{queue.length < tracks.length && `（全 ${tracks.length} 曲）`}
           </span>
