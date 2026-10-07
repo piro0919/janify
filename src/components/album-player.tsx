@@ -124,7 +124,6 @@ export function AlbumPlayer({
                 <Marquee active={active} className="flex-1">
                   {track.title}
                 </Marquee>
-                {!track.videoId && <span className="ml-auto shrink-0 text-xs">動画なし</span>}
               </button>
               {track.videoId && (
                 <HeartButton

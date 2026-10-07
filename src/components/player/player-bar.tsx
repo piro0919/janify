@@ -39,7 +39,7 @@ export function PlayerBar({ item, open }: { item: QueueItem | null; open: boolea
     <div
       aria-hidden={!open}
       inert={!open}
-      className={`chrome-bottom fixed inset-x-0 bottom-14 z-30 h-16 border-t border-line bg-bar/80 backdrop-blur-lg backdrop-saturate-150 transition-[translate,opacity] duration-300 ease-(--ease-out) md:bottom-0 ${
+      className={`chrome-bottom fixed inset-x-0 bottom-14 z-30 h-16 border-t border-line/60 bg-sidebar/60 backdrop-blur-lg backdrop-saturate-150 transition-[translate,opacity] duration-300 ease-(--ease-out) md:bottom-0 ${
         open ? '' : 'pointer-events-none translate-y-full opacity-0'
       }`}
     >
