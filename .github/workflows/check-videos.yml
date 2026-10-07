@@ -1,0 +1,31 @@
+# 掲載中の動画が、まだ埋め込みで流せるかを週に1回確かめる（scripts/check-videos.ts）。
+# 流せない動画があると失敗し、GitHub からメールが届く。キーはリポジトリの secret の YOUTUBE_API_KEY
+name: check-videos
+
+on:
+  schedule:
+    - cron: '0 0 * * 1' # 毎週月曜 9:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm youtube:check
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}

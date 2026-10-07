@@ -102,6 +102,8 @@
 ## 検査と道具
 
 - `pnpm knip` — 使われていないファイル・エクスポート・パッケージ。CI でも回す。設定ファイルや CSS からしか読まれないもの（commitlint・secretlint の設定・tailwindcss）は `knip.json` で除外している
+- CI（`.github/workflows/ci.yml`）は main への push とプルリクエストで回る。型・lint・整形・秘密情報・単体テスト・knip・ビルドと、別の job で E2E。2026-10-07 まではプルリクエストだけで、main に直接 push していたので一度も走っていなかった
+- `pnpm youtube:check` — 掲載中の動画がまだ埋め込みで流せるか（削除・非公開・埋め込み停止・日本で見られない）を Data API で確かめる。`.github/workflows/check-videos.yml` が毎週月曜 9:00 に回し、流せない動画があれば失敗してメールが届く。キーはリポジトリの secret の `YOUTUBE_API_KEY`。直し方は Notion の「曲」の「YouTube」を差し替えて書き出す。2026-10-07 の時点で 3597 本すべて流せた
 - `pnpm test:e2e` — Playwright。本番のビルドを立ち上げ、トップ・検索・再生・お気に入り・テーマをパソコンとスマホの幅で確かめる。YouTube の再生そのものは確かめない（ネットワーク次第で揺れる）
 - `pnpm lighthouse` — 手元だけの速度と品質の計測。結果は `.lighthouseci` に書くだけ。2026-10-07 時点で、速度以外は 0.9 以上、速度は 0.62〜0.76（LCP が 6〜12 秒。読み込めたら出す画像の透明の間が数えられているか、未確認）
 - カタログ（`src/lib/catalog.ts`）は `server-only`。ブラウザ側の部品から値として読み込むとビルドで止まる。一度、`thumbOf` を読み込んだだけで約500KBのカタログ全体がブラウザに入っていた。ブラウザでも使う小物は `src/lib/thumb.ts` のように別のファイルに置く
