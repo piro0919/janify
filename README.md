@@ -6,13 +6,16 @@
 
 ## ✨ Features
 
-- 💿 Browse 41 artists and 396 albums by artist, by album or by decade
+- 💿 Browse 41 artists and 396 albums by artist, by album or by decade, with each artist's YouTube channel icon
 - ▶️ Play a whole album in order, with shuffle and repeat
 - 🎬 One player for the whole site, so playback continues while you browse
+- 📲 A full-screen player view on phones; pull the title down to shrink the player to a corner
+- ⌨️ Keyboard shortcuts (space, arrows, M, S, R), listed on the settings page
+- 🔆 Keeps the phone screen awake while playing
 - ❤️ Favorite songs, albums and artists; favorite songs form a playlist you can reorder
 - 🔍 Search across every artist, album and song (`/search`)
 - 🌗 Dark and light themes
-- 📱 PWA-ready, installable to the home screen
+- 📱 PWA-ready, installable to the home screen, with an optional edge swipe to go back on iOS
 
 ## 🛠 Tech Stack
 
