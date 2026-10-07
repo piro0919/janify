@@ -25,7 +25,8 @@
     "test": "vitest run",
     "knip": "knip",
     "test:e2e": "playwright test",
-    "lighthouse": "pnpm build && lhci autorun"
+    "lighthouse": "pnpm build && lhci autorun",
+    "youtube:icons": "tsx --env-file-if-exists=.env.local scripts/channel-icons.ts"
   },
   "dependencies": {
     "@bprogress/next": "^3.2.12",

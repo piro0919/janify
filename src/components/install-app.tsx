@@ -1,9 +1,10 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useState, useSyncExternalStore } from 'react';
+import { type ReactNode, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { usePwa } from 'use-pwa';
+import { Icon } from './icon';
 
 const PWAPrompt = dynamic(() => import('react-ios-pwa-prompt'), { ssr: false });
 
@@ -17,14 +18,19 @@ function isAppleDevice(): boolean {
 }
 
 /**
- * 設定の画面の「ホーム画面に追加」（koidamashii・spatto と同じ形）。
+ * ホーム画面に追加する仕組み（koidamashii・spatto と同じ形）。
  * Chrome 系はブラウザの確認を出す。iOS は API が無いので、共有ボタンから追加する手順を案内する。
- * 入れたあとと、どちらもできない端末では、その旨だけを出す。
+ * guide は iOS の案内の窓で、ボタンを置く側が描く。
  * 裏に回すと再生が止まるのは、ホーム画面から開いても変わらない（YouTube の埋め込みの決まり）
  */
-export function InstallApp() {
+function useInstall(): {
+  isInstalled: boolean;
+  available: boolean;
+  start: () => void;
+  guide: ReactNode;
+} {
   const { canInstall, install, isInstalled } = usePwa();
-  const [guide, setGuide] = useState(false);
+  const [open, setOpen] = useState(false);
   // 端末の判定は window を見る。サーバー側では決まらないので、載ってから読む
   const isApple = useSyncExternalStore(
     () => () => {},
@@ -32,27 +38,16 @@ export function InstallApp() {
     () => false,
   );
 
-  return (
-    <section className="mt-10">
-      <h2 className="mb-3 font-bold">アプリ</h2>
-      {isInstalled ? (
-        <p className="px-3 text-sm text-muted">ホーム画面に追加済みです。</p>
-      ) : canInstall || isApple ? (
-        <button
-          type="button"
-          onClick={() => (canInstall ? void install() : setGuide(true))}
-          className="rounded-full border border-line px-4 py-2 text-sm font-bold transition-[background-color,scale] duration-150 ease-out hover:bg-foreground/8 active:scale-95"
-        >
-          ホーム画面に追加
-        </button>
-      ) : (
-        <p className="px-3 text-sm text-muted">このブラウザでは、ホーム画面に追加できません。</p>
-      )}
-      {isApple && !canInstall
+  return {
+    isInstalled,
+    available: !isInstalled && (canInstall || isApple),
+    start: () => (canInstall ? void install() : setOpen(true)),
+    guide:
+      isApple && !canInstall
         ? createPortal(
             <PWAPrompt
-              isShown={guide}
-              onClose={() => setGuide(false)}
+              isShown={open}
+              onClose={() => setOpen(false)}
               appIconPath="/apple-icon.png"
               copyTitle="ホーム画面に追加"
               copyDescription="ホーム画面から Janify をすばやく開けます。"
@@ -62,7 +57,53 @@ export function InstallApp() {
             />,
             document.body,
           )
-        : null}
+        : null,
+  };
+}
+
+/** 設定の画面の「アプリ」の欄。入れたあとと、追加できない端末では、その旨だけを出す */
+export function InstallApp() {
+  const { isInstalled, available, start, guide } = useInstall();
+  return (
+    <section className="mt-10">
+      <h2 className="mb-3 font-bold">アプリ</h2>
+      {isInstalled ? (
+        <p className="px-3 text-sm text-muted">ホーム画面に追加済みです。</p>
+      ) : available ? (
+        <button
+          type="button"
+          onClick={start}
+          className="rounded-full border border-line px-4 py-2 text-sm font-bold transition-[background-color,scale] duration-150 ease-out hover:bg-foreground/8 active:scale-95"
+        >
+          ホーム画面に追加
+        </button>
+      ) : (
+        <p className="px-3 text-sm text-muted">このブラウザでは、ホーム画面に追加できません。</p>
+      )}
+      {guide}
     </section>
+  );
+}
+
+/**
+ * 上の帯の「アプリ」のボタン。設定の画面だけでは気づかれにくいので、上の帯にも置く。
+ * 追加できる端末で、まだ入れていないときだけ出す。スマホはアイコンだけ、パソコンは字も添える
+ */
+export function InstallButton({ className = '' }: { className?: string }) {
+  const { available, start, guide } = useInstall();
+  if (!available) return null;
+  return (
+    <>
+      <button
+        type="button"
+        aria-label="アプリをホーム画面に追加"
+        onClick={start}
+        className={`grid size-10 shrink-0 place-items-center rounded-full text-muted transition-[color,background-color,scale] duration-150 ease-out hover:text-foreground active:scale-95 md:flex md:size-auto md:gap-1.5 md:border md:border-line/60 md:bg-sidebar/60 md:px-3.5 md:py-2 md:text-sm md:font-bold md:text-foreground md:hover:bg-foreground/8 ${className}`}
+      >
+        <Icon name="install" className="size-5" />
+        <span className="hidden whitespace-nowrap md:inline">アプリ</span>
+      </button>
+      {guide}
+    </>
   );
 }

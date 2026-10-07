@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Suspense, useState } from 'react';
 import { Icon } from './icon';
+import { InstallButton } from './install-app';
 import { Logo } from './nav';
 import { SearchBox } from './search-box';
 
@@ -32,11 +33,13 @@ export function HeaderBar() {
 
   return (
     <>
-      <div className="hidden w-full md:block">
+      <div className="hidden w-full items-center gap-3 md:flex">
         {/* 検索欄は URL の語を読むので、静的に書き出す画面では Suspense で包む */}
         <Suspense fallback={<div className="h-10 w-full max-w-xl" />}>
           <SearchBox />
         </Suspense>
+        <span className="flex-1" />
+        <InstallButton />
       </div>
 
       {expanded ? (
@@ -72,6 +75,7 @@ export function HeaderBar() {
           >
             <Icon name="search" />
           </button>
+          <InstallButton className="md:hidden" />
           {/* スマホは左のメニューが出ないので、設定への入口を上の帯の右端に置く（YouTube Music のアプリと同じ） */}
           <Link href="/settings" aria-label="設定" className={ICON_BUTTON}>
             <Icon name="settings" className="size-5" />

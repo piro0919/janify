@@ -48,6 +48,8 @@ async function main() {
     .map((artist) => ({
       id: shortId(artist.id),
       name: text(artist.properties['名前']),
+      // チャンネルのアイコン（`pnpm youtube:icons` が入れる）。公式のチャンネルが無いアーティストは空
+      icon: artist.properties['アイコン']?.url ?? null,
       albums: (albumsByArtist.get(artist.id) ?? [])
         .map((album) => ({
           id: shortId(album.id),

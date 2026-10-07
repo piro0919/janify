@@ -1,11 +1,11 @@
 import type { WebSite, WithContext } from 'schema-dts';
 import { AlbumShelf } from '@/components/album-grid';
-import { CoverCard, SHELF_ITEM } from '@/components/cover-card';
+import { ARTIST_SHELF_ITEM, CoverCard } from '@/components/cover-card';
 import { FavoriteShelves } from '@/components/favorites/favorite-shelves';
 import { JsonLd } from '@/components/json-ld';
 import { Shelf } from '@/components/shelf';
 import { SongList } from '@/components/song-list';
-import { albumsByNewest, artists, coverOf, decades, popularSongs } from '@/lib/catalog';
+import { albumsByNewest, artists, decades, popularSongs } from '@/lib/catalog';
 import { SITE_URL } from '@/lib/site';
 
 /** サイトそのものの情報と、検索結果にサイト内の検索欄を出すための案内 */
@@ -45,10 +45,11 @@ export default function Home() {
             key={artist.id}
             href={`/artists/${artist.id}`}
             playing={{ artistId: artist.id }}
-            cover={coverOf(artist.albums.flatMap((a) => a.tracks).toReversed())}
+            cover={artist.icon}
+            round
             title={artist.name}
             sub={`アルバム ${artist.albums.length} 枚`}
-            className={SHELF_ITEM}
+            className={ARTIST_SHELF_ITEM}
           />
         ))}
       </Shelf>

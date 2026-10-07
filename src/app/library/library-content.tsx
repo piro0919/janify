@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { COVER_GRID, CoverCard } from '@/components/cover-card';
+import { ARTIST_GRID, COVER_GRID, CoverCard } from '@/components/cover-card';
 import Link from 'next/link';
 import { useLibraryKept } from '@/components/favorites/use-library';
 import { SongList } from '@/components/song-list';
@@ -49,7 +49,7 @@ export function LibraryContent() {
       )}
       {artists.length > 0 && (
         <Section title="アーティスト" count={artists.length}>
-          <div className={COVER_GRID}>
+          <div className={ARTIST_GRID}>
             {artists.map((a, i) => (
               <CoverCard
                 key={a.id}
@@ -57,6 +57,7 @@ export function LibraryContent() {
                 href={`/artists/${a.id}`}
                 playing={{ artistId: a.id }}
                 cover={a.cover}
+                round
                 title={a.name}
                 sub={`アルバム ${a.albums} 枚`}
               />

@@ -9,7 +9,7 @@ export function GET() {
   for (const artist of artists) {
     index.artists[artist.id] = {
       name: artist.name,
-      cover: coverOf(artist.albums.flatMap((a) => a.tracks).toReversed()),
+      cover: artist.icon,
       albums: artist.albums.length,
     };
     for (const album of artist.albums) {

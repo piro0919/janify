@@ -5,6 +5,7 @@ import { FadeImage } from './fade-image';
 import { NowPlaying } from './now-playing';
 
 // YouTube のサムネイルは加工せずに出す（規約）。16:9 の mqdefault を 16:9 の枠に入れるので、端は切れない。
+// アーティストのカード（round）は、YouTube のチャンネルのアイコンを丸く出す。公式のチャンネルが無いアーティストは名前の頭の1字。
 // 押すと詳しい画面へ移る。アルバムのカードには、マウスを載せると右下に再生ボタンが出て、押すとアルバムの画面で1曲目から流す
 export function CoverCard({
   href,
@@ -14,6 +15,7 @@ export function CoverCard({
   eager,
   playing,
   play,
+  round,
   className = '',
 }: {
   href: string;
@@ -26,6 +28,8 @@ export function CoverCard({
   playing?: { albumId?: string; artistId?: string };
   /** アルバムの1曲目。渡すと、マウスを載せたときにサムネイルの右下へ再生ボタンを出す */
   play?: QueueItem;
+  /** アーティストのカード。cover にチャンネルのアイコンを渡し、丸く出す */
+  round?: boolean;
   className?: string;
 }) {
   return (
@@ -36,23 +40,49 @@ export function CoverCard({
       className={`group relative -m-2 rounded-lg p-2 transition-colors duration-150 hover:bg-foreground/8 ${className}`}
     >
       <Link href={href} className="block">
-        <div className="relative aspect-video overflow-hidden rounded-md bg-surface">
-          {cover && (
-            <FadeImage
-              src={cover}
-              alt=""
-              fill
-              loading={eager ? 'eager' : 'lazy'}
-              sizes="(min-width: 1024px) 240px, (min-width: 640px) 33vw, 50vw"
-              className="object-cover"
-            />
-          )}
-        </div>
-        <p className="mt-2 flex items-center gap-1.5 text-sm font-bold">
+        {round ? (
+          <div className="relative aspect-square overflow-hidden rounded-full bg-surface">
+            {cover ? (
+              <FadeImage
+                src={cover}
+                alt=""
+                fill
+                loading={eager ? 'eager' : 'lazy'}
+                sizes="(min-width: 640px) 180px, 40vw"
+                className="object-cover"
+              />
+            ) : (
+              <span
+                aria-hidden
+                className="grid size-full place-items-center font-display text-4xl font-extrabold text-muted"
+              >
+                {[...title][0]}
+              </span>
+            )}
+          </div>
+        ) : (
+          <div className="relative aspect-video overflow-hidden rounded-md bg-surface">
+            {cover && (
+              <FadeImage
+                src={cover}
+                alt=""
+                fill
+                loading={eager ? 'eager' : 'lazy'}
+                sizes="(min-width: 1024px) 240px, (min-width: 640px) 33vw, 50vw"
+                className="object-cover"
+              />
+            )}
+          </div>
+        )}
+        <p
+          className={`mt-2 flex items-center gap-1.5 text-sm font-bold ${round ? 'justify-center' : ''}`}
+        >
           <span className="truncate">{title}</span>
           {playing && <NowPlaying {...playing} />}
         </p>
-        {sub && <p className="truncate text-xs text-muted">{sub}</p>}
+        {sub && (
+          <p className={`truncate text-xs text-muted ${round ? 'text-center' : ''}`}>{sub}</p>
+        )}
       </Link>
       {play && (
         <div className="pointer-events-none absolute inset-x-2 top-2 aspect-video">
@@ -71,6 +101,13 @@ export function CoverCard({
  */
 export const SHELF_ITEM = 'w-48 shrink-0 snap-start sm:w-60';
 
+/** 棚の中のアーティストの1枚。丸いアイコンは 16:9 より背が高いので、幅を詰める */
+export const ARTIST_SHELF_ITEM = 'w-36 shrink-0 snap-start sm:w-44';
+
 /** 一覧の画面で、棚と同じカードを敷き詰める格子 */
 export const COVER_GRID =
   'grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5';
+
+/** アーティストの格子。丸いアイコンは背が高いので、カードの格子より列を増やす */
+export const ARTIST_GRID =
+  'grid grid-cols-3 gap-x-4 gap-y-6 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6';

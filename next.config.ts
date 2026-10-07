@@ -4,7 +4,12 @@ import './src/env';
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [{ protocol: 'https', hostname: 'i.ytimg.com', pathname: '/vi/**' }],
+    remotePatterns: [
+      { protocol: 'https', hostname: 'i.ytimg.com', pathname: '/vi/**' },
+      // チャンネルのアイコン
+      { protocol: 'https', hostname: 'yt3.ggpht.com' },
+      { protocol: 'https', hostname: 'yt3.googleusercontent.com' },
+    ],
   },
   async headers() {
     return [

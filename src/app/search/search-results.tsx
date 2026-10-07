@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { COVER_GRID, CoverCard } from '@/components/cover-card';
+import { ARTIST_GRID, COVER_GRID, CoverCard } from '@/components/cover-card';
 import { SongList } from '@/components/song-list';
 import { search, type SearchIndex } from '@/lib/search';
 import { Heading } from '@/components/heading';
@@ -48,13 +48,14 @@ export function SearchResults() {
       )}
       {result.artists.length > 0 && (
         <Section title="アーティスト" count={result.artists.length} limit={LIMIT.artists}>
-          <div className={COVER_GRID}>
+          <div className={ARTIST_GRID}>
             {result.artists.slice(0, LIMIT.artists).map((a) => (
               <CoverCard
                 key={a.id}
                 href={`/artists/${a.id}`}
                 playing={{ artistId: a.id }}
                 cover={a.cover}
+                round
                 title={a.name}
                 sub={`アルバム ${a.albums} 枚`}
               />

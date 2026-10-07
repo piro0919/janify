@@ -1,6 +1,6 @@
 'use client';
 
-import { CoverCard, SHELF_ITEM } from '../cover-card';
+import { ARTIST_SHELF_ITEM, CoverCard, SHELF_ITEM } from '../cover-card';
 import { Shelf } from '../shelf';
 import { SongList } from '../song-list';
 import { useLibraryKept } from './use-library';
@@ -40,9 +40,10 @@ export function FavoriteShelves() {
               href={`/artists/${a.id}`}
               playing={{ artistId: a.id }}
               cover={a.cover}
+              round
               title={a.name}
               sub={`アルバム ${a.albums} 枚`}
-              className={SHELF_ITEM}
+              className={ARTIST_SHELF_ITEM}
             />
           ))}
         </Shelf>

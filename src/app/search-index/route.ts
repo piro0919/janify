@@ -10,7 +10,7 @@ export function GET() {
     artists: artists.map((a) => ({
       id: a.id,
       name: a.name,
-      cover: coverOf(a.albums.flatMap((al) => al.tracks).toReversed()),
+      cover: a.icon,
       albums: a.albums.length,
     })),
     albums: albumsByNewest.map(({ artist, album }) => ({

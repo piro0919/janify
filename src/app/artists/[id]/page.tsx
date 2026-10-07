@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import type { MusicGroup, WithContext } from 'schema-dts';
@@ -45,6 +46,17 @@ export default async function ArtistPage({ params }: PageProps<'/artists/[id]'>)
       <JsonLd data={jsonLd} />
       <AmbientSource image={cover} />
       <div className="flex items-center gap-3 pt-4">
+        {artist.icon && (
+          // チャンネルのアイコン。並べると見出しより目立たないよう、小さめに出す
+          <Image
+            src={artist.icon}
+            alt=""
+            width={96}
+            height={96}
+            preload
+            className="size-16 shrink-0 rounded-full bg-surface object-cover sm:size-24"
+          />
+        )}
         <Heading as="h1" size="page" eyebrow="Artist">
           {artist.name}
         </Heading>

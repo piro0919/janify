@@ -9,7 +9,8 @@ import { thumbOf } from '@/lib/thumb';
 type VideoKind = 'mv' | 'audio' | 'unofficial';
 export type Track = { title: string; videoId: string | null; kind: VideoKind | null };
 export type Album = { id: string; title: string; year: number | null; tracks: Track[] };
-export type Artist = { id: string; name: string; albums: Album[] };
+/** icon は YouTube のチャンネルのアイコン。公式のチャンネルが無いアーティストは null */
+export type Artist = { id: string; name: string; icon: string | null; albums: Album[] };
 
 /** 再生の順番待ちに積む1曲。どのアルバムの曲かを持ち、プレイヤーの帯に出す */
 export type QueueItem = {
