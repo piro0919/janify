@@ -117,7 +117,7 @@
 
 ## README と GitHub の About
 
-- 公開リポジトリなので、README は英語で書く（comic-time・kk-web・hawky と同じ。日本語の README は非公開のリポジトリだけ）。形は comic-time に合わせている
+- 公開リポジトリなので、README は英語で書く（comic-time・kk-web・hawky と同じ）。形は comic-time に合わせている
 - About は、説明・公開先（https://janify.kkweb.io/）・トピックを埋めてある。画面や機能が大きく変わったら README の Features と一緒に直す
 
 ## データの流れ
