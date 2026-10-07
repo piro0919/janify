@@ -65,6 +65,7 @@
   - 曲は収録ごとに別に扱う。鍵は「アルバムの id と曲名」（`songKeyOf`）。人気曲の「同じ曲」のまとめ方は括弧書きを外すので、リミックスや取り直しまで同じ曲になってしまい、お気に入りには使えない
   - 動画の id は Notion で差し替えると変わるので鍵にしない
   - 入口は、下の帯の曲名の横・曲の一覧の各行・アルバムの再生ボタンの隣・アーティストの名前の横
+  - ハートは差し色の薄紫ではなく桃色（`--heart`）。入れたときは一度弾んで、すぐ近くに小さな点が散る。輪と小さなハートを散らす版は動きが多すぎて本人が嫌がった
   - いまは localStorage（`janify-favorites-v1`）だけ。読むのは `favorites-store.ts` の1か所にまとめ、変更があったときだけ読み直す（comic-time で、一覧の各行で読んで iPhone のアプリが落ちた）
   - 一覧は `/library-index`（今掲載しているものだけ）と突き合わせて出す。掲載を外した曲は、お気に入りに鍵が残っていても見えず、再生もできない
 - 後でログイン機能を入れる（本人の予定）。comic-time と同じく Neon の Postgres と Better Auth（Google）にする
@@ -105,7 +106,7 @@
 - カタログ（`src/lib/catalog.ts`）は `server-only`。ブラウザ側の部品から値として読み込むとビルドで止まる。一度、`thumbOf` を読み込んだだけで約500KBのカタログ全体がブラウザに入っていた。ブラウザでも使う小物は `src/lib/thumb.ts` のように別のファイルに置く
 - 環境変数の検査は、サイトは `src/env.ts`（いまは空。ログインのときに足す）、`scripts/` は `scripts/lib/env.ts`
 - アイコンの原画は `src/assets/icon-source.png`（ChatGPT に描かせた、ロゴと同じ斜体のセリフ体の「J」ときらめき）。`python3 scripts/build-icons.py` が地を #0e0d12 に塗り直してから、favicon・apple-icon・icon.png・`public/icon-*.png` に書き出す。原画を差し替えたら流し直す
-- PWA の manifest は `src/app/manifest.ts`。「ホーム画面に追加」は設定の画面に置いた（常に見える場所には置かない）
+- PWA の manifest は `src/app/manifest.ts`。「ホーム画面に追加」は設定の画面と上の帯の両方にある（`src/components/install-app.tsx`）
 
 ## データの流れ
 

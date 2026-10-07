@@ -17,6 +17,7 @@
   --foreground: #f3f2f7;
   --muted: #a3a0b0;
   --accent: #b69bff;
+  --heart: #ff6b9a;
   color-scheme: dark;
 }
 
@@ -29,6 +30,7 @@
   --foreground: #18161f;
   --muted: #66627a;
   --accent: #6a47e6;
+  --heart: #e2336f;
   color-scheme: light;
 }
 
@@ -41,6 +43,7 @@
     --foreground: #18161f;
     --muted: #66627a;
     --accent: #6a47e6;
+    --heart: #e2336f;
     color-scheme: light;
   }
 }
@@ -61,6 +64,8 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  /* お気に入りのハート。差し色の薄紫とは別に、ハートらしい桃色にする */
+  --color-heart: var(--heart);
   --font-sans: var(--font-body), system-ui, sans-serif;
   --font-display: var(--font-shippori), 'Hiragino Mincho ProN', serif;
 }
@@ -176,16 +181,35 @@ body {
   }
 }
 
-/* お気に入りに入れたときのハートの弾み */
+/*
+ * お気に入りに入れたときのハート（heart-button.tsx）。
+ * ハートは小さく縮んでから一度だけ弾んで落ち着き、すぐ近くで小さな点が散って消える
+ */
 @keyframes pop {
   0% {
-    transform: scale(0.6);
+    transform: scale(0.5);
   }
-  60% {
+  50% {
     transform: scale(1.2);
   }
   100% {
     transform: scale(1);
+  }
+}
+@keyframes heart-spark {
+  0% {
+    top: 40%;
+    transform: translate(-50%, -50%) scale(0.6);
+    opacity: 1;
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    top: -45%;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
   }
 }
 
