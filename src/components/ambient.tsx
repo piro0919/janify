@@ -29,6 +29,7 @@ const SourceContext = createContext<(image: string | null) => void>(() => {});
 
 /**
  * 画面の上部に敷く、色のグラデーション。全ページ共通で1つだけ置き（layout.tsx）、画面を移っても作り直さない。
+ * 画面に固定し、スクロールしても上部に残す。ページと一緒に流すと、下へ読み進めたときに色が消えて地の一色になる。
  * 各ページは AmbientSource で「この画面はこの絵の色」と伝えるだけで、色は前の画面の色から直接移り変わる。
  * 伝えない画面（一覧・ライブラリ・検索・設定など）は、流している曲のサムネイルの色、流していなければ差し色にする
  */
@@ -78,7 +79,7 @@ export function AmbientProvider({ children }: { children: ReactNode }) {
     <SourceContext value={setSource}>
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[32rem] opacity-35 dark:opacity-100"
+        className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[32rem] opacity-35 dark:opacity-100"
       >
         {layers.map((layer) => (
           <div
