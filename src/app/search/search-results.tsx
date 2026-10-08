@@ -57,7 +57,7 @@ export function SearchResults() {
                 cover={a.cover}
                 round
                 title={a.name}
-                sub={`アルバム ${a.albums} 枚`}
+                sub={a.sub}
               />
             ))}
           </div>

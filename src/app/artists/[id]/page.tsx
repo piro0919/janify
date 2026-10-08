@@ -8,7 +8,7 @@ import { HeartButton } from '@/components/favorites/heart-button';
 import { JsonLd } from '@/components/json-ld';
 import { Shelf } from '@/components/shelf';
 import { SongList } from '@/components/song-list';
-import { artists, coverOf, findArtist, songsOf } from '@/lib/catalog';
+import { albumsOf, artists, coverOf, findArtist, singlesOf, songsOf } from '@/lib/catalog';
 import { SITE_URL } from '@/lib/site';
 import { Heading } from '@/components/heading';
 
@@ -35,8 +35,11 @@ export default async function ArtistPage({ params }: PageProps<'/artists/[id]'>)
       '@type': 'MusicAlbum',
       name: a.title,
       url: `${SITE_URL}/albums/${a.id}`,
+      albumReleaseType: a.kind === 'single' ? 'SingleRelease' : 'AlbumRelease',
     })),
   };
+  const albums = albumsOf(artist);
+  const singles = singlesOf(artist);
   const songs = songsOf(artist)
     .slice(0, 12)
     .map((s) => s.song);
@@ -73,13 +76,28 @@ export default async function ArtistPage({ params }: PageProps<'/artists/[id]'>)
           <SongList songs={songs} columns />
         </Shelf>
       )}
-      <div className="mt-7 mb-4 sm:mt-10">
-        <Heading eyebrow="Discography">アルバム</Heading>
-      </div>
-      <AlbumGrid
-        albums={artist.albums.toReversed().map((album) => ({ artist, album }))}
-        showArtist={false}
-      />
+      {albums.length > 0 && (
+        <>
+          <div className="mt-7 mb-4 sm:mt-10">
+            <Heading eyebrow="Discography">アルバム</Heading>
+          </div>
+          <AlbumGrid
+            albums={albums.toReversed().map((album) => ({ artist, album }))}
+            showArtist={false}
+          />
+        </>
+      )}
+      {singles.length > 0 && (
+        <>
+          <div className="mt-7 mb-4 sm:mt-10">
+            <Heading eyebrow="Singles">シングル</Heading>
+          </div>
+          <AlbumGrid
+            albums={singles.toReversed().map((album) => ({ artist, album }))}
+            showArtist={false}
+          />
+        </>
+      )}
     </>
   );
 }

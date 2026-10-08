@@ -2,7 +2,8 @@ import type { QueueItem } from './catalog';
 import { norm } from './song';
 
 export type SearchIndex = {
-  artists: { id: string; name: string; cover: string | null; albums: number }[];
+  /** sub はカードの添え書き（「アルバム 5 枚」） */
+  artists: { id: string; name: string; cover: string | null; sub: string }[];
   albums: {
     id: string;
     title: string;

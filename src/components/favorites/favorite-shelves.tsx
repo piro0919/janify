@@ -42,7 +42,7 @@ export function FavoriteShelves() {
               cover={a.cover}
               round
               title={a.name}
-              sub={`アルバム ${a.albums} 枚`}
+              sub={a.sub}
               className={ARTIST_SHELF_ITEM}
             />
           ))}

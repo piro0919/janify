@@ -31,6 +31,7 @@ export default async function AlbumPage({ params }: PageProps<'/albums/[id]'>) {
     url: `${SITE_URL}/albums/${album.id}`,
     ...(cover && { image: cover }),
     ...(album.year && { datePublished: String(album.year) }),
+    albumReleaseType: album.kind === 'single' ? 'SingleRelease' : 'AlbumRelease',
     byArtist: { '@type': 'MusicGroup', name: artist.name, url: `${SITE_URL}/artists/${artist.id}` },
     numTracks: album.tracks.length,
     track: album.tracks.map((t, i) => ({
@@ -48,7 +49,7 @@ export default async function AlbumPage({ params }: PageProps<'/albums/[id]'>) {
         // 題名は動画の下に出す（YouTube の動画のページと同じ並び）
         heading={
           <>
-            <Heading as="h1" size="page" eyebrow="Album">
+            <Heading as="h1" size="page" eyebrow={album.kind === 'single' ? 'Single' : 'Album'}>
               {album.title}
             </Heading>
             <p className="mt-1 text-muted">

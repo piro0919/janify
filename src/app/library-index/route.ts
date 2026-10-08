@@ -1,4 +1,4 @@
-import { artists, coverOf, queueOf } from '@/lib/catalog';
+import { artists, coverOf, discographyOf, queueOf } from '@/lib/catalog';
 import { type LibraryIndex, songKeyOf } from '@/lib/library';
 
 // ビルドのときに一度だけ作り、静的なファイルとして配る。お気に入りがある人だけが取りに来る
@@ -10,7 +10,7 @@ export function GET() {
     index.artists[artist.id] = {
       name: artist.name,
       cover: artist.icon,
-      albums: artist.albums.length,
+      sub: discographyOf(artist),
     };
     for (const album of artist.albums) {
       index.albums[album.id] = {

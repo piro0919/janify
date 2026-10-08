@@ -39,21 +39,44 @@ export async function notion<T = unknown>(
   }
 }
 
-export async function queryAll<T = { id: string; properties: Record<string, any> }>(
-  dataSourceId: string,
-): Promise<T[]> {
-  const rows: T[] = [];
-  let cursor: string | undefined;
-  do {
-    const body = await notion<{ results: T[]; has_more: boolean; next_cursor: string }>(
-      'POST',
-      `/data_sources/${dataSourceId}/query`,
-      { page_size: 100, start_cursor: cursor },
-    );
-    rows.push(...body.results);
-    cursor = body.has_more ? body.next_cursor : undefined;
-  } while (cursor);
-  return rows;
+// 1回の問い合わせで辿れるのは1万件まで。それを超えると has_more が false になり、黙って途切れる
+// （2026-10-09、曲が12,799行になって、書き出しからアルバムが127枚消えた）
+const QUERY_LIMIT = 10000;
+
+/**
+ * 全行を読む。作られた順に並べ、1万件に届いたら最後の行の作成時刻から問い合わせ直す。
+ * 作成時刻は分の単位なので、境目の行は二重に返る。id で除く
+ */
+export async function queryAll<
+  T extends { id: string } = { id: string; properties: Record<string, any> },
+>(dataSourceId: string): Promise<T[]> {
+  const rows = new Map<string, T>();
+  let after: string | undefined;
+  for (;;) {
+    let cursor: string | undefined;
+    let count = 0;
+    let last: string | undefined;
+    do {
+      const body = await notion<{
+        results: (T & { created_time: string })[];
+        has_more: boolean;
+        next_cursor: string;
+      }>('POST', `/data_sources/${dataSourceId}/query`, {
+        page_size: 100,
+        start_cursor: cursor,
+        sorts: [{ timestamp: 'created_time', direction: 'ascending' }],
+        ...(after && {
+          filter: { timestamp: 'created_time', created_time: { on_or_after: after } },
+        }),
+      });
+      for (const row of body.results) rows.set(row.id, row);
+      count += body.results.length;
+      last = body.results.at(-1)?.created_time ?? last;
+      cursor = body.has_more ? body.next_cursor : undefined;
+    } while (cursor);
+    if (count < QUERY_LIMIT || !last || last === after) return [...rows.values()];
+    after = last;
+  }
 }
 
 export const title = (text: string) => ({ title: [{ text: { content: text.slice(0, 2000) } }] });

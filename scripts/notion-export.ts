@@ -55,6 +55,8 @@ async function main() {
           id: shortId(album.id),
           title: text(album.properties['タイトル']),
           year: album.properties['発売年']?.number ?? null,
+          // 種別が空の行は、シングルを集める前に入れたアルバム
+          kind: album.properties['種別']?.select?.name === 'シングル' ? 'single' : 'album',
           tracks: (tracksByAlbum.get(album.id) ?? [])
             .sort(
               (a, b) => (a.properties['曲順']?.number ?? 0) - (b.properties['曲順']?.number ?? 0),

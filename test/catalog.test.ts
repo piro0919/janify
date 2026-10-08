@@ -116,7 +116,9 @@ describe('人気曲と年代', () => {
     expect(bad.map((al) => al.title)).toEqual([]);
   });
 
-  it('新しい順の一覧には、全アルバムが入る', () => {
-    expect(albumsByNewest.length).toBe(artists.flatMap((a) => a.albums).length);
+  it('新しい順の一覧には、シングルを除く全アルバムが入る', () => {
+    const albums = artists.flatMap((a) => a.albums).filter((al) => al.kind === 'album');
+    expect(albumsByNewest.length).toBe(albums.length);
+    expect(albumsByNewest.every(({ album }) => album.kind === 'album')).toBe(true);
   });
 });

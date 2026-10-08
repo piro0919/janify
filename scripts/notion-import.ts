@@ -1,5 +1,5 @@
 // Wikipedia から集めた data/raw の一式を、Notion の「アーティスト」「アルバム」「曲」の3つのデータベースへ入れる。
-// 最初の一回だけ使う。以後の正本は Notion で、直すのも Notion。
+// 最初の一回と、シングルのように新しく集めた記事を足すときに使う。以後の正本は Notion で、直すのも Notion。
 // データベースが無ければ親ページの下に作り、ID を scripts/notion-ids.json に残す。
 // 途中で止まっても、作った行は data/raw/notion-progress.json に記録してあるので、走らせ直せば続きから入る
 import { existsSync, writeFileSync } from 'node:fs';
@@ -12,7 +12,16 @@ const PROGRESS_FILE = 'data/raw/notion-progress.json';
 
 type Ids = { artists: string; albums: string; tracks: string };
 type Artist = { name: string; page: string };
-type Album = { artist: string; title: string; page: string; year: number | null; tracks: string[] };
+type Album = {
+  artist: string;
+  title: string;
+  page: string;
+  year: number | null;
+  kind?: 'album' | 'single';
+  tracks: string[];
+};
+
+const KIND_LABEL = { album: 'アルバム', single: 'シングル' } as const;
 
 const wikipedia = (page: string) =>
   `https://ja.wikipedia.org/wiki/${encodeURIComponent(page.replace(/ /g, '_'))}`;
@@ -37,6 +46,7 @@ async function ensureDatabases(): Promise<Ids> {
   const albums = await createDatabase('アルバム', {
     タイトル: { title: {} },
     アーティスト: { relation: { data_source_id: artists, single_property: {} } },
+    種別: { select: { options: Object.values(KIND_LABEL).map((name) => ({ name })) } },
     発売年: { number: {} },
     Wikipedia: { url: {} },
     掲載: { checkbox: {} },
@@ -57,6 +67,12 @@ async function ensureDatabases(): Promise<Ids> {
 
 async function main() {
   const ids = await ensureDatabases();
+  // シングルを集める前に作ったデータベースには、種別の列が無い
+  await notion('PATCH', `/data_sources/${ids.albums}`, {
+    properties: {
+      種別: { select: { options: Object.values(KIND_LABEL).map((name) => ({ name })) } },
+    },
+  });
   const artists: Artist[] = JSON.parse(await readFile('data/raw/artists.json', 'utf8'));
   const albums: Album[] = JSON.parse(await readFile('data/raw/albums.json', 'utf8'));
   const progress: Record<string, string> = existsSync(PROGRESS_FILE)
@@ -99,6 +115,7 @@ async function main() {
       const albumId = await create(albumKey, ids.albums, {
         タイトル: title(album.title),
         アーティスト: { relation: [{ id: artistId }] },
+        種別: { select: { name: KIND_LABEL[album.kind ?? 'album'] } },
         発売年: { number: album.year },
         Wikipedia: { url: wikipedia(album.page) },
         掲載: { checkbox: true },

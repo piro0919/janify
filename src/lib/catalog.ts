@@ -8,7 +8,14 @@ import { thumbOf } from '@/lib/thumb';
 // 正本は Notion。src/data/catalog.json は scripts/notion-export.ts が書き出したもので、手で直さない
 type VideoKind = 'mv' | 'audio' | 'unofficial';
 export type Track = { title: string; videoId: string | null; kind: VideoKind | null };
-export type Album = { id: string; title: string; year: number | null; tracks: Track[] };
+/** kind はアルバムかシングルか。シングルもアルバムと同じ画面で流す */
+export type Album = {
+  id: string;
+  title: string;
+  year: number | null;
+  kind: 'album' | 'single';
+  tracks: Track[];
+};
 /** icon は YouTube のチャンネルのアイコン。公式のチャンネルが無いアーティストは null */
 export type Artist = { id: string; name: string; icon: string | null; albums: Album[] };
 
@@ -61,9 +68,22 @@ export function queueOf(artist: Artist, album: Album): QueueItem[] {
 
 export type AlbumEntry = { artist: Artist; album: Album };
 
-/** 全アルバムを新しい順に。発売年の無いものは最後 */
+/** シングルを除いたアルバム */
+export const albumsOf = (artist: Artist) => artist.albums.filter((a) => a.kind === 'album');
+export const singlesOf = (artist: Artist) => artist.albums.filter((a) => a.kind === 'single');
+
+/** アーティストのカードの添え書き。アルバムの無いアーティストはシングルの数 */
+export function discographyOf(artist: Artist): string {
+  const albums = albumsOf(artist).length;
+  return albums > 0 ? `アルバム ${albums} 枚` : `シングル ${singlesOf(artist).length} 枚`;
+}
+
+/**
+ * 全アルバムを新しい順に。発売年の無いものは最後。
+ * シングルは入れない。数が多く、新しいアルバムの棚や年代の一覧がシングルで埋まるので、アーティストの画面から辿る
+ */
 export const albumsByNewest: AlbumEntry[] = artists
-  .flatMap((artist) => artist.albums.map((album) => ({ artist, album })))
+  .flatMap((artist) => albumsOf(artist).map((album) => ({ artist, album })))
   .toSorted((a, b) => (b.album.year ?? -Infinity) - (a.album.year ?? -Infinity));
 
 /** 年代ごとのアルバム。新しい年代から。発売年の無いアルバムはどこにも入れない */

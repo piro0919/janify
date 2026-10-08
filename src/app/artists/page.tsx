@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { ARTIST_GRID, CoverCard } from '@/components/cover-card';
-import { artists } from '@/lib/catalog';
+import { artists, discographyOf } from '@/lib/catalog';
 import { Heading } from '@/components/heading';
 
 export const metadata: Metadata = { title: 'アーティスト' };
@@ -22,7 +22,7 @@ export default function ArtistsPage() {
             cover={artist.icon}
             round
             title={artist.name}
-            sub={`アルバム ${artist.albums.length} 枚`}
+            sub={discographyOf(artist)}
             eager={i < 10}
           />
         ))}

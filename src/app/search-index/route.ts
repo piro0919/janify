@@ -1,4 +1,4 @@
-import { albumsByNewest, artists, coverOf, songsOf } from '@/lib/catalog';
+import { albumsByNewest, artists, coverOf, discographyOf, songsOf } from '@/lib/catalog';
 import type { SearchIndex } from '@/lib/search';
 
 // 検索の画面が読む索引。ビルドのときに一度だけ作り、静的なファイルとして配る。
@@ -11,7 +11,7 @@ export function GET() {
       id: a.id,
       name: a.name,
       cover: a.icon,
-      albums: a.albums.length,
+      sub: discographyOf(a),
     })),
     albums: albumsByNewest.map(({ artist, album }) => ({
       id: album.id,

@@ -5,7 +5,7 @@ import { FavoriteShelves } from '@/components/favorites/favorite-shelves';
 import { JsonLd } from '@/components/json-ld';
 import { Shelf } from '@/components/shelf';
 import { SongList } from '@/components/song-list';
-import { albumsByNewest, artists, decades, popularSongs } from '@/lib/catalog';
+import { albumsByNewest, artists, decades, discographyOf, popularSongs } from '@/lib/catalog';
 import { SITE_URL } from '@/lib/site';
 
 /** サイトそのものの情報と、検索結果にサイト内の検索欄を出すための案内 */
@@ -48,7 +48,7 @@ export default function Home() {
             cover={artist.icon}
             round
             title={artist.name}
-            sub={`アルバム ${artist.albums.length} 枚`}
+            sub={discographyOf(artist)}
             className={ARTIST_SHELF_ITEM}
           />
         ))}

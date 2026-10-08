@@ -80,12 +80,16 @@ export async function categoriesOf(titles: string[]): Promise<Map<string, string
   return result;
 }
 
-export async function categoryMembers(category: string): Promise<string[]> {
+/** 分類に入った記事。`withSubcategories` なら下位の分類（「Category:…」）も返す */
+export async function categoryMembers(
+  category: string,
+  withSubcategories = false,
+): Promise<string[]> {
   const data = (await call({
     action: 'query',
     list: 'categorymembers',
     cmtitle: category,
-    cmnamespace: '0',
+    cmnamespace: withSubcategories ? '0|14' : '0',
     cmlimit: '500',
   })) as { query: { categorymembers: { title: string }[] } };
   return data.query.categorymembers.map((m) => m.title);

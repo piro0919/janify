@@ -11,7 +11,8 @@ export type LibraryIndex = {
     string,
     { title: string; year: number | null; artistName: string; cover: string | null }
   >;
-  artists: Record<string, { name: string; cover: string | null; albums: number }>;
+  /** sub はカードの添え書き（「アルバム 5 枚」） */
+  artists: Record<string, { name: string; cover: string | null; sub: string }>;
 };
 
 /**
