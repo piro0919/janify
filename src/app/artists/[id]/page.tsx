@@ -11,14 +11,16 @@ import { SongList } from '@/components/song-list';
 import { albumsOf, artists, coverOf, findArtist, singlesOf, songsOf } from '@/lib/catalog';
 import { SITE_URL } from '@/lib/site';
 import { Heading } from '@/components/heading';
+import { canonical } from '@/lib/site';
 
 export function generateStaticParams() {
   return artists.map((a) => ({ id: a.id }));
 }
 
 export async function generateMetadata({ params }: PageProps<'/artists/[id]'>): Promise<Metadata> {
-  const artist = findArtist((await params).id);
-  return { title: artist?.name };
+  const { id } = await params;
+  const artist = findArtist(id);
+  return { title: artist?.name, alternates: canonical(`/artists/${id}`) };
 }
 
 export default async function ArtistPage({ params }: PageProps<'/artists/[id]'>) {

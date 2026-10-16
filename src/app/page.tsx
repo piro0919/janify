@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import type { WebSite, WithContext } from 'schema-dts';
 import { AlbumShelf } from '@/components/album-grid';
 import { ARTIST_SHELF_ITEM, CoverCard } from '@/components/cover-card';
@@ -6,7 +7,9 @@ import { JsonLd } from '@/components/json-ld';
 import { Shelf } from '@/components/shelf';
 import { SongList } from '@/components/song-list';
 import { albumsByNewest, artists, decades, discographyOf, popularSongs } from '@/lib/catalog';
-import { SITE_URL } from '@/lib/site';
+import { canonical, SITE_URL } from '@/lib/site';
+
+export const metadata: Metadata = { alternates: canonical('/') };
 
 /** サイトそのものの情報と、検索結果にサイト内の検索欄を出すための案内 */
 const jsonLd: WithContext<WebSite> = {

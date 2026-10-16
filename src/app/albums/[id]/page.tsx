@@ -8,14 +8,19 @@ import { JsonLd } from '@/components/json-ld';
 import { artists, coverOf, findAlbum, queueOf } from '@/lib/catalog';
 import { SITE_URL } from '@/lib/site';
 import { Heading } from '@/components/heading';
+import { canonical } from '@/lib/site';
 
 export function generateStaticParams() {
   return artists.flatMap((artist) => artist.albums.map((a) => ({ id: a.id })));
 }
 
 export async function generateMetadata({ params }: PageProps<'/albums/[id]'>): Promise<Metadata> {
-  const found = findAlbum((await params).id);
-  return { title: found && `${found.album.title} - ${found.artist.name}` };
+  const { id } = await params;
+  const found = findAlbum(id);
+  return {
+    title: found && `${found.album.title} - ${found.artist.name}`,
+    alternates: canonical(`/albums/${id}`),
+  };
 }
 
 export default async function AlbumPage({ params }: PageProps<'/albums/[id]'>) {

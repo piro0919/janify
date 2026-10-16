@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import { AlbumShelf } from '@/components/album-grid';
 import { decades } from '@/lib/catalog';
 import { Heading } from '@/components/heading';
+import { canonical } from '@/lib/site';
 
-export const metadata: Metadata = { title: '年代' };
+export const metadata: Metadata = { title: '年代', alternates: canonical('/decades') };
 
 export default function DecadesPage() {
   return (

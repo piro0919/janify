@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import { ARTIST_GRID, CoverCard } from '@/components/cover-card';
 import { artists, discographyOf } from '@/lib/catalog';
 import { Heading } from '@/components/heading';
+import { canonical } from '@/lib/site';
 
-export const metadata: Metadata = { title: 'アーティスト' };
+export const metadata: Metadata = { title: 'アーティスト', alternates: canonical('/artists') };
 
 export default function ArtistsPage() {
   return (

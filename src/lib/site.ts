@@ -5,3 +5,11 @@ export const CONTACT_FORM_URL =
 export const OPERATOR = 'kk-web';
 
 export const SITE_URL = 'https://janify.kkweb.io';
+
+/**
+ * ページの正規の住所（canonical）。サイトマップに載せるページが自分の住所を名乗る。
+ * レイアウトには書かない（書くと、書いていないページまで全部が同じ住所を名乗る）
+ */
+export function canonical(path: string): { canonical: string } {
+  return { canonical: `${SITE_URL}${path}` };
+}

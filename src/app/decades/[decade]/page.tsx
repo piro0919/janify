@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { AlbumGrid } from '@/components/album-grid';
 import { decades } from '@/lib/catalog';
 import { Heading } from '@/components/heading';
+import { canonical } from '@/lib/site';
 
 export const dynamicParams = false;
 
@@ -19,7 +20,10 @@ export async function generateMetadata({
   params,
 }: PageProps<'/decades/[decade]'>): Promise<Metadata> {
   const found = await find(params);
-  return { title: found && `${found.decade}年代のアルバム` };
+  return {
+    title: found && `${found.decade}年代のアルバム`,
+    alternates: canonical(`/decades/${(await params).decade}`),
+  };
 }
 
 export default async function DecadePage({ params }: PageProps<'/decades/[decade]'>) {
