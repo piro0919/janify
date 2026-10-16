@@ -29,6 +29,26 @@ test('開き直すと前の曲が止まった状態で戻り、続きを再生�
   await expect(page.getByRole('button', { name: '一時停止' }).first()).toBeVisible();
 });
 
+test('プレイヤーの準備に時間がかかっても、準備の前に曲を替えたり画面を移ったりして落ちない', async ({
+  page,
+}) => {
+  // 本物は準備（onReady）まで数秒かかることがある。その間に人気曲からアルバムの画面へ移り、別の曲も押す
+  await page.addInitScript(() => {
+    (window as unknown as { __ytReadyDelay: number }).__ytReadyDelay = 3000;
+  });
+  await page.goto('/');
+  const rows = page.locator('section').filter({ hasText: '人気曲' }).locator('.group');
+  await rows.first().locator('button').first().click();
+  await expect(page).toHaveURL(/\/albums\//);
+  await expect(page.locator('[data-player-frame] iframe')).toBeAttached();
+  const tracks = page.locator('main ol li').filter({ has: page.locator('button:enabled') });
+  if ((await tracks.count()) > 1) await tracks.nth(1).locator('button').first().click();
+  // 準備が済んだら、最後に選んだ曲が流れる
+  await expect(page.getByRole('button', { name: '一時停止' }).first()).toBeVisible({
+    timeout: 8000,
+  });
+});
+
 test('設定で「前回の続きから始める」を切ると、開き直しても前の曲は戻らない', async ({ page }) => {
   const title = await playPopular(page);
   const album = page.url();

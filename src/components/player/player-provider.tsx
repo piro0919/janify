@@ -192,7 +192,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const positionRef = useRef(0);
 
   const frame = useRef<HTMLDivElement>(null);
+  // 準備（onReady）が済んだプレイヤーだけを置く。作った直後の YouTube のプレイヤーは getCurrentTime などの
+  // 操作の関数をまだ持たず、呼ぶと落ちるので、準備が済むまでは creating に置く
   const player = useRef<YTPlayer | null>(null);
+  const creating = useRef<YTPlayer | null>(null);
+  /** 準備の前に頼まれた曲。準備が済んだらこれを流す */
+  const loadOnReady = useRef<{ videoId: string; startSeconds?: number } | null>(null);
   // 戻した前の曲（まだ流していない）と、その続きの位置（秒）。再生を押したときに、流し始める位置としてプレイヤーに渡す
   const [resumable, setResumable] = useState(false);
   const resumeAt = useRef<number | null>(null);
@@ -237,13 +242,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       player.current.loadVideoById(from ? { videoId, startSeconds: from } : videoId);
       return;
     }
+    if (creating.current) {
+      loadOnReady.current = from ? { videoId, startSeconds: from } : { videoId };
+      return;
+    }
     // 仕組みを読み込めなかったら、帯を ▶ に戻す。次に ▶ を押すか曲を選んだときに、読み込み直す
     loadYouTubeApi().then(
       (YT) => {
-        if (!frame.current || player.current) return;
+        if (!frame.current || player.current || creating.current) return;
         const el = document.createElement('div');
         frame.current.replaceChildren(el);
-        player.current = new YT.Player(el, {
+        creating.current = new YT.Player(el, {
           videoId,
           // 表示はなるべく減らす。操作は Janify の帯でするので、YouTube の操作バーは出さない。
           // 上部の題名と「YouTube で見る」のロゴは、パラメータでは消せない（消そうとして上に重ねるのは規約違反）
@@ -258,11 +267,18 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           },
           events: {
             onReady: (e) => {
+              // 準備の前に閉じられていたら使わない
+              if (creating.current !== e.target) return;
+              creating.current = null;
+              player.current = e.target;
               // 残しておいた音量で始める
               const { volume, muted } = soundRef.current ?? { volume: 100, muted: false };
               e.target.setVolume(volume);
               if (muted) e.target.mute();
-              e.target.playVideo();
+              const later = loadOnReady.current;
+              loadOnReady.current = null;
+              if (later) e.target.loadVideoById(later);
+              else e.target.playVideo();
             },
             onStateChange: ({ data }) => {
               if (data === YT.PlayerState.PLAYING) {
@@ -369,6 +385,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     advanceOnPlay.current = false;
     player.current?.destroy();
     player.current = null;
+    creating.current?.destroy();
+    creating.current = null;
+    loadOnReady.current = null;
     frame.current?.replaceChildren();
     state.current = { queue: [], index: 0 };
     setQueue([]);
@@ -399,7 +418,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     positionRef.current = Math.max(0, saved.order.indexOf(saved.index));
     state.current = { queue: saved.queue, index: saved.index };
     // 控えは localStorage にあり、サーバーでは読めない。描いたあとのこの effect で、開いたときに1回だけ戻すほかない
-     
+
     setSound(soundRef.current);
     setPlayback(playbackRef.current);
     setPosition(positionRef.current);
@@ -408,7 +427,6 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setContext(saved.context);
     setTime({ current: saved.position, duration: saved.duration, at: performance.now() });
     setResumable(true);
-     
   }, []);
 
   /** 戻した前の曲を、聴いていた位置から流す（再生を押したとき） */

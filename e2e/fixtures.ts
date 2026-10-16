@@ -25,7 +25,12 @@ const FAKE_IFRAME_API = `
       if (options.videoId) this.show(options.videoId);
       // テストから曲の終わりを起こす口（window.__ytEnd()）
       window.__ytEnd = () => this.state(STATE.ENDED);
-      setTimeout(() => this.events.onReady && this.events.onReady({ target: this }), 0);
+      // 本物は、onReady より前には操作の関数（getCurrentTime・loadVideoById など）を持たない。偽物も同じにして、
+      // 準備の前に呼んで落ちる誤りをテストで拾う
+      setTimeout(() => {
+        Object.assign(this, READY_METHODS);
+        if (this.events.onReady) this.events.onReady({ target: this });
+      }, window.__ytReadyDelay ?? 300);
     }
     show(id) {
       this.iframe.src = 'https://www.youtube.com/embed/' + id + '?enablejsapi=1';
@@ -33,23 +38,25 @@ const FAKE_IFRAME_API = `
     state(data) {
       setTimeout(() => this.events.onStateChange && this.events.onStateChange({ data }), 0);
     }
+    destroy() { this.iframe.remove(); }
+  }
+  const READY_METHODS = {
     loadVideoById(arg) {
       const id = typeof arg === 'string' ? arg : arg.videoId;
       this.current = typeof arg === 'string' ? 0 : arg.startSeconds || 0;
       this.show(id);
       this.state(STATE.PLAYING);
-    }
-    playVideo() { this.state(STATE.PLAYING); }
-    pauseVideo() { this.state(STATE.PAUSED); }
-    stopVideo() {}
-    seekTo(seconds) { this.current = seconds; }
-    getCurrentTime() { return this.current; }
-    getDuration() { return 200; }
-    setVolume() {}
-    mute() {}
-    unMute() {}
-    destroy() { this.iframe.remove(); }
-  }
+    },
+    playVideo() { this.state(STATE.PLAYING); },
+    pauseVideo() { this.state(STATE.PAUSED); },
+    stopVideo() {},
+    seekTo(seconds) { this.current = seconds; },
+    getCurrentTime() { return this.current; },
+    getDuration() { return 200; },
+    setVolume() {},
+    mute() {},
+    unMute() {},
+  };
   window.YT = { Player, PlayerState: STATE };
   if (window.onYouTubeIframeAPIReady) window.onYouTubeIframeAPIReady();
 })();
@@ -71,7 +78,11 @@ export const test = base.extend({
   // 2つ目の引数は Playwright の「この値でテストを走らせる」関数。use という名前だと React のフックの規則に掛かるので、名前を替える
   page: async ({ page }, provide) => {
     await fakeVideos(page);
+    // 画面が出ていても、裏で例外が起きていたら落とす（準備前のプレイヤーを呼んで落ちたのを見逃していた）
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
     await provide(page);
+    expect(errors, 'ページで例外が起きた').toEqual([]);
   },
 });
 
