@@ -224,46 +224,53 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       player.current.loadVideoById(videoId);
       return;
     }
-    void loadYouTubeApi().then((YT) => {
-      if (!frame.current || player.current) return;
-      const el = document.createElement('div');
-      frame.current.replaceChildren(el);
-      player.current = new YT.Player(el, {
-        videoId,
-        // 表示はなるべく減らす。操作は Janify の帯でするので、YouTube の操作バーは出さない。
-        // 上部の題名と「YouTube で見る」のロゴは、パラメータでは消せない（消そうとして上に重ねるのは規約違反）
-        playerVars: {
-          autoplay: 1,
-          playsinline: 1,
-          rel: 0, // 一時停止中の関連動画を、同じチャンネルのものに絞る
-          controls: 0,
-          iv_load_policy: 3, // 動画の注釈を出さない
-          disablekb: 1, // プレイヤー内のキー操作で帯の表示とずれないようにする
-        },
-        events: {
-          onReady: (e) => {
-            // 残しておいた音量で始める
-            const { volume, muted } = soundRef.current ?? { volume: 100, muted: false };
-            e.target.setVolume(volume);
-            if (muted) e.target.mute();
-            e.target.playVideo();
+    // 仕組みを読み込めなかったら、帯を ▶ に戻す。次に ▶ を押すか曲を選んだときに、読み込み直す
+    loadYouTubeApi().then(
+      (YT) => {
+        if (!frame.current || player.current) return;
+        const el = document.createElement('div');
+        frame.current.replaceChildren(el);
+        player.current = new YT.Player(el, {
+          videoId,
+          // 表示はなるべく減らす。操作は Janify の帯でするので、YouTube の操作バーは出さない。
+          // 上部の題名と「YouTube で見る」のロゴは、パラメータでは消せない（消そうとして上に重ねるのは規約違反）
+          playerVars: {
+            autoplay: 1,
+            playsinline: 1,
+            rel: 0, // 一時停止中の関連動画を、同じチャンネルのものに絞る
+            controls: 0,
+            iv_load_policy: 3, // 動画の注釈を出さない
+            disablekb: 1, // プレイヤー内のキー操作で帯の表示とずれないようにする
           },
-          onStateChange: ({ data }) => {
-            if (data === YT.PlayerState.PLAYING) {
-              setPlaying(true);
+          events: {
+            onReady: (e) => {
+              // 残しておいた音量で始める
+              const { volume, muted } = soundRef.current ?? { volume: 100, muted: false };
+              e.target.setVolume(volume);
+              if (muted) e.target.mute();
+              e.target.playVideo();
+            },
+            onStateChange: ({ data }) => {
+              if (data === YT.PlayerState.PLAYING) {
+                setPlaying(true);
+                setLoading(false);
+              }
+              if (data === YT.PlayerState.PAUSED) setPlaying(false);
+              if (data === YT.PlayerState.ENDED) onEnded.current();
+            },
+            // 再生できない動画（削除・非公開・埋め込み不可・有料会員限定など）は、読み込み中のまま止めず、次の曲へ進む
+            onError: () => {
               setLoading(false);
-            }
-            if (data === YT.PlayerState.PAUSED) setPlaying(false);
-            if (data === YT.PlayerState.ENDED) onEnded.current();
+              onEnded.current();
+            },
           },
-          // 再生できない動画（削除・非公開・埋め込み不可・有料会員限定など）は、読み込み中のまま止めず、次の曲へ進む
-          onError: () => {
-            setLoading(false);
-            onEnded.current();
-          },
-        },
-      });
-    });
+        });
+      },
+      () => {
+        setLoading(false);
+        setPlaying(false);
+      },
+    );
   }, []);
 
   /**
@@ -486,7 +493,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       toggleShuffle,
       playQueue: load,
       adoptQueue: adopt,
-      toggle: () => (playing ? player.current?.pauseVideo() : player.current?.playVideo()),
+      toggle: () => {
+        if (playing) player.current?.pauseVideo();
+        else if (player.current) player.current.playVideo();
+        // YouTube の仕組みを読み込めずにプレイヤーが無いときは、いまの曲で読み込み直す
+        else if (queue.length > 0) load(queue, index, context);
+      },
       step,
       close,
       seek: (seconds) => {

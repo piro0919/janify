@@ -115,3 +115,16 @@ test('お気に入りの曲の画面で並べ替えると、その順が残り�
   await expect(page).toHaveURL(/\/library\/songs$/);
   await expect(page.locator('html')).toHaveAttribute('data-player', 'slot');
 });
+
+test('YouTube の仕組みを読み込めないときは、帯が読み込み中のまま固まらず ▶ に戻る', async ({
+  page,
+}) => {
+  // 広告ブロックなどで止められたときと同じく、iframe_api の読み込みを失敗させる
+  await page.route('**/www.youtube.com/iframe_api', (route) => route.abort());
+  await page.goto('/');
+  const row = page.locator('section').filter({ hasText: '人気曲' }).locator('.group').first();
+  await row.locator('button').first().click();
+  await expect(page).toHaveURL(/\/albums\//);
+  const play = page.getByRole('button', { name: '再生', exact: true }).last();
+  await expect(play).toBeEnabled();
+});

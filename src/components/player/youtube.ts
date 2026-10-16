@@ -35,14 +35,23 @@ declare global {
 }
 
 let apiReady: Promise<YTNamespace> | undefined;
+/**
+ * YouTube の仕組み（iframe_api）を読み込む。読み込めなかったとき（広告ブロックなどで止められたとき）は失敗にし、
+ * 次に呼んだときに読み込み直す。失敗しても待ち続けると、帯の再生ボタンが読み込み中のまま固まる（Vocafy で確かめた）
+ */
 export function loadYouTubeApi(): Promise<YTNamespace> {
-  apiReady ??= new Promise((resolve) => {
+  apiReady ??= new Promise<YTNamespace>((resolve, reject) => {
     if (window.YT?.Player) return resolve(window.YT);
     window.onYouTubeIframeAPIReady = () => {
       if (window.YT) resolve(window.YT);
     };
     const script = document.createElement('script');
     script.src = 'https://www.youtube.com/iframe_api';
+    script.onerror = () => {
+      script.remove();
+      apiReady = undefined;
+      reject(new Error('YouTube の仕組みを読み込めませんでした'));
+    };
     document.head.append(script);
   });
   return apiReady;
