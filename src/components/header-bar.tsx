@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Suspense, useState } from 'react';
+import { leave } from '@/lib/leave';
 import { Icon } from './icon';
 import { InstallButton } from './install-app';
 import { Logo } from './nav';
@@ -50,10 +51,7 @@ export function HeaderBar() {
             onClick={() => {
               setOpen(false);
               // 検索の画面からは前の画面へ戻る。いきなり検索の画面に来たときは、トップへ
-              if (onSearch) {
-                if (window.history.length > 1) router.back();
-                else router.push('/');
-              }
+              if (onSearch) leave(router);
             }}
             className={ICON_BUTTON}
           >

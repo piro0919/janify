@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { type ReactNode, useEffect, useLayoutEffect, useRef } from 'react';
 import { FadeImage } from './fade-image';
 import { Icon } from './icon';
+import { leave } from '@/lib/leave';
 import { usePlayer } from './player/player-provider';
 
 /**
@@ -151,9 +152,3 @@ const MOBILE = '(max-width: 47.99rem)';
 
 /** 下へこれだけ引いて離したら戻る（px） */
 const PULL = 60;
-
-/** 前の画面に戻る。いきなりこの画面に来たときは、トップへ */
-function leave(router: ReturnType<typeof useRouter>) {
-  if (window.history.length > 1) router.back();
-  else router.push('/');
-}

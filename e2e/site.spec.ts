@@ -128,3 +128,14 @@ test('YouTube の仕組みを読み込めないときは、帯が読み込み中
   const play = page.getByRole('button', { name: '再生', exact: true }).last();
   await expect(play).toBeEnabled();
 });
+
+test('いきなり検索の画面を開いて閉じると、サイトの外ではなくトップへ移る', async ({
+  page,
+  isMobile,
+}) => {
+  // 閉じるボタンはスマホの幅だけ。新しいタブは about:blank の上に開くので、「戻る」だとサイトの外へ出る
+  test.skip(!isMobile, '検索を閉じるボタンはスマホの幅だけ');
+  await page.goto('/search?q=love');
+  await page.getByRole('button', { name: '検索を閉じる' }).click();
+  await expect(page).toHaveURL(/\/$/);
+});

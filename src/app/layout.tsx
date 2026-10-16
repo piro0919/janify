@@ -6,6 +6,7 @@ import { AmbientProvider } from '@/components/ambient';
 import { Header } from '@/components/header';
 import { HeaderBar } from '@/components/header-bar';
 import { MobileTabs, Sidebar } from '@/components/nav';
+import { NavigationDepth } from '@/components/navigation-depth';
 import { PlayerProvider } from '@/components/player/player-provider';
 import { ScrollChrome } from '@/components/scroll-chrome';
 import { SwipeBack } from '@/components/swipe-back/swipe-back';
@@ -114,6 +115,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
           </PlayerProvider>
         </Progress>
         <ThemeWatcher />
+        <NavigationDepth />
         <ScrollChrome />
         <SwipeBack />
         <Analytics />
