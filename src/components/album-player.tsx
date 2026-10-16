@@ -9,6 +9,7 @@ import { Icon } from './icon';
 import { Bars } from './now-playing';
 import { PlayerStage, SwipeToLeave } from './player-stage';
 import { usePlayer } from './player/player-provider';
+import { playStart } from './player/play-order';
 import { PlaybackMode } from './player/playback-mode';
 import { Marquee } from './marquee';
 
@@ -44,6 +45,7 @@ export function AlbumPlayer({
     if (at >= 0) adoptQueue(queue, at);
   }, [here, current, context, queue, adoptQueue]);
 
+  // 曲を選ばずに「再生」を押したときは、押すたびに同じ曲から始まらないよう、曲目のどこかの曲から始める（play-order.ts）
   const start = (videoId?: string) =>
     playQueue(
       queue,
@@ -52,7 +54,7 @@ export function AlbumPlayer({
             0,
             queue.findIndex((q) => q.videoId === videoId),
           )
-        : 0,
+        : playStart(queue.length),
     );
 
   return (

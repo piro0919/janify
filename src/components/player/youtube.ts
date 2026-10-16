@@ -1,6 +1,6 @@
 // YouTube の IFrame API のうち、使う分だけの型と読み込み
 export type YTPlayer = {
-  loadVideoById(id: string): void;
+  loadVideoById(id: string | { videoId: string; startSeconds?: number }): void;
   playVideo(): void;
   pauseVideo(): void;
   seekTo(seconds: number, allowSeekAhead: boolean): void;

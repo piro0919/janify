@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import {
   createContext,
   type ReactNode,
@@ -14,11 +13,19 @@ import {
 } from 'react';
 import type { QueueItem } from '@/lib/catalog';
 import { EASE_OUT, prefersReducedMotion } from '@/lib/motion';
+import { thumbOf } from '@/lib/thumb';
+import { FadeImage } from '../fade-image';
 import { Icon } from '../icon';
+import { buildOrder, upcomingOf } from './play-order';
+import { subscribeDockSide } from './dock-side';
+import { DockStrip, FADE, HIDDEN } from './dock-strip';
 import { PlayerBar } from './player-bar';
+import { clearResume, readResume, saveResume } from './player-resume';
 import { loadYouTubeApi, type YTPlayer } from './youtube';
 import { PlayerKeys } from './player-keys';
 import { SongTitle } from './song-title';
+import { HistoryRecorder } from './history-recorder';
+import { type Sleep, useSleepTimer } from './use-sleep-timer';
 import { useWakeLock } from './use-wake-lock';
 
 /**
@@ -58,6 +65,19 @@ type PlayerContext = {
   adoptQueue: (items: QueueItem[], index: number) => void;
   toggle: () => void;
   step: (dir: 1 | -1) => void;
+  /** 次に流れる曲（流す順でいまの曲のあと）。index は並びの何曲目か */
+  upcoming: () => { item: QueueItem; index: number }[];
+  /** いまの並びの index 曲目へ飛ぶ（流す順はそのまま） */
+  jumpTo: (index: number) => void;
+  /** スリープタイマー。分か、いまの曲の終わり（'end'）。null で切る */
+  sleep: Sleep | null;
+  setSleep: (value: number | 'end' | null) => void;
+  /**
+   * 開き直したときに戻した、まだ流していない前の曲があるか（player-resume.ts）。プレイヤーはまだ作っておらず、
+   * 再生を押すと聴いていた位置から流す（resume）
+   */
+  resumable: boolean;
+  resume: () => void;
   /** 再生をやめ、プレイヤーを消す */
   close: () => void;
   seek: (seconds: number) => void;
@@ -74,6 +94,8 @@ type PlayerContext = {
 const Context = createContext<PlayerContext | null>(null);
 
 const VOLUME_KEY = 'janify-volume';
+/** 流しているあいだ、どこまで聴いたかを残す間隔（ミリ秒） */
+const SAVE_EVERY_MS = 5000;
 const PLAYBACK_KEY = 'janify-playback';
 
 export type Repeat = 'all' | 'one';
@@ -97,21 +119,6 @@ function savePlayback(value: { repeat: Repeat; shuffle: boolean }) {
   } catch {
     // 保存できない窓では、開き直すと元に戻る
   }
-}
-
-/**
- * 流す順。ランダムでなければ並びどおり、ランダムなら start を先頭にして残りを混ぜる。
- * 前の曲へ戻ったときに同じ曲へ戻れるよう、混ぜた順は覚えておく
- */
-function buildOrder(length: number, start: number, shuffle: boolean): number[] {
-  const order = Array.from({ length }, (_, i) => i);
-  if (!shuffle) return order;
-  const rest = order.filter((i) => i !== start);
-  for (let i = rest.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [rest[i], rest[j]] = [rest[j], rest[i]];
-  }
-  return [start, ...rest];
 }
 
 /** 残しておいた音量と消音。読めなければ 100 で消音なし */
@@ -144,19 +151,11 @@ export function usePlayer(): PlayerContext {
 }
 
 /**
- * 右下の窓の位置と大きさ。スマホでは下のタブと帯の上、パソコンでは帯の上。
- * スマホは画面が狭いので、規約の下限（200×200）ちょうどの正方形にする。16:9 の動画は窓の中で上下に黒い帯が入る。
- * パソコンは 16:9 の 356×200
+ * 右下の窓の位置と大きさ。スマホでは下のタブと帯の上、パソコンでは帯の上。寸法は globals.css の .dock-box・.dock-strip。
+ * 640px 未満の幅は画面が狭いので、規約の下限（200×200）ちょうどの正方形にする。16:9 の動画は窓の中で上下に黒い帯が入る。
+ * 640px からは 16:9 の 356×200。パソコンの幅では角の引き手で大きくできる（dock-size.ts）。上の帯は dock-strip.tsx
  */
-const DOCK =
-  'fixed right-4 bottom-[calc(7.5rem+12px)] h-[200px] w-[200px] md:bottom-[calc(4rem+16px)] md:w-[356px]';
-/** 窓のすぐ上に付ける帯 */
-const DOCK_STRIP =
-  'fixed right-4 bottom-[calc(7.5rem+12px+200px)] h-9 w-[200px] md:bottom-[calc(4rem+16px+200px)] md:w-[356px]';
-/** 出入りの動き。閉じたあとは少し下へずらして消す */
-const FADE = 'transition-[opacity,translate,visibility] duration-300 ease-(--ease-out)';
-const HIDDEN = 'pointer-events-none invisible translate-y-4 opacity-0';
-
+const DOCK = 'dock-box fixed';
 /**
  * ページを移っても再生が続く、全ページ共通のプレイヤー。ルートのレイアウトに1つだけ置く。
  *
@@ -194,6 +193,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const frame = useRef<HTMLDivElement>(null);
   const player = useRef<YTPlayer | null>(null);
+  // 戻した前の曲（まだ流していない）と、その続きの位置（秒）。再生を押したときに、流し始める位置としてプレイヤーに渡す
+  const [resumable, setResumable] = useState(false);
+  const resumeAt = useRef<number | null>(null);
+  const startFrom = useRef<number | null>(null);
+  // スリープタイマーの「この曲が終わったら」で止めたあと。次に再生を押したら、並びの次の曲から続ける
+  const advanceOnPlay = useRef(false);
+  const { sleep, sleepRef, setSleep } = useSleepTimer(player, soundRef);
   // YouTube の onStateChange は作ったときの関数を持ち続けるので、今の順番待ちは ref にも持つ
   const state = useRef({ queue, index });
   // 曲が終わったときの処理。load から自分自身を呼ぶことになるので、ref を通して呼ぶ
@@ -201,6 +207,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const load = useCallback((items: QueueItem[], at: number, ctx: PlayContext = 'album') => {
     setContext(ctx);
+    setResumable(false);
+    advanceOnPlay.current = false;
+    // 続きの位置は、戻した前の曲を流すとき（resume）だけ渡す。ほかの曲は頭から
+    const from = startFrom.current;
+    startFrom.current = null;
+    resumeAt.current = null;
     if (!soundRef.current) {
       soundRef.current = savedVolume();
       setSound(soundRef.current);
@@ -219,10 +231,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setQueue(items);
     setIndex(at);
     setLoading(true);
-    setTime({ current: 0, duration: 0, at: performance.now() });
+    setTime({ current: from ?? 0, duration: 0, at: performance.now() });
     const videoId = items[at].videoId;
     if (player.current) {
-      player.current.loadVideoById(videoId);
+      player.current.loadVideoById(from ? { videoId, startSeconds: from } : videoId);
       return;
     }
     // 仕組みを読み込めなかったら、帯を ▶ に戻す。次に ▶ を押すか曲を選んだときに、読み込み直す
@@ -242,6 +254,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
             controls: 0,
             iv_load_policy: 3, // 動画の注釈を出さない
             disablekb: 1, // プレイヤー内のキー操作で帯の表示とずれないようにする
+            ...(from ? { start: Math.floor(from) } : {}),
           },
           events: {
             onReady: (e) => {
@@ -302,6 +315,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // 曲が終わったら、ループが1曲なら頭から、そうでなければ流す順の次の曲へ（最後なら先頭に戻る）
     onEnded.current = () => {
+      // スリープタイマーの「この曲が終わったら」。次へ進まずに止め、次に再生を押したら並びの次の曲から続ける
+      if (sleepRef.current?.kind === 'end') {
+        setSleep(null);
+        setPlaying(false);
+        advanceOnPlay.current = true;
+        return;
+      }
       if (playbackRef.current?.repeat === 'one' && player.current) {
         player.current.seekTo(0, true);
         player.current.playVideo();
@@ -309,7 +329,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       }
       next(1);
     };
-  }, [next]);
+  }, [next, sleepRef, setSleep]);
 
   const toggleShuffle = useCallback(() => {
     const now = playbackRef.current ?? savedPlayback();
@@ -343,6 +363,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const close = useCallback(() => {
+    clearResume();
+    setResumable(false);
+    resumeAt.current = null;
+    advanceOnPlay.current = false;
     player.current?.destroy();
     player.current = null;
     frame.current?.replaceChildren();
@@ -363,6 +387,68 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }, 500);
     return () => clearInterval(id);
   }, [playing]);
+
+  // 開いたときに、12時間以内に流していた前の曲があれば、止まった状態で戻す（player-resume.ts）。プレイヤーは作らない
+  useEffect(() => {
+    const saved = readResume();
+    if (!saved) return;
+    resumeAt.current = saved.position;
+    soundRef.current = savedVolume();
+    playbackRef.current = savedPlayback();
+    order.current = saved.order;
+    positionRef.current = Math.max(0, saved.order.indexOf(saved.index));
+    state.current = { queue: saved.queue, index: saved.index };
+    // 控えは localStorage にあり、サーバーでは読めない。描いたあとのこの effect で、開いたときに1回だけ戻すほかない
+     
+    setSound(soundRef.current);
+    setPlayback(playbackRef.current);
+    setPosition(positionRef.current);
+    setQueue(saved.queue);
+    setIndex(saved.index);
+    setContext(saved.context);
+    setTime({ current: saved.position, duration: saved.duration, at: performance.now() });
+    setResumable(true);
+     
+  }, []);
+
+  /** 戻した前の曲を、聴いていた位置から流す（再生を押したとき） */
+  const resume = useCallback(() => {
+    const { queue: q, index: i } = state.current;
+    if (!q[i]) return;
+    startFrom.current = resumeAt.current;
+    load(q, i, contextRef.current);
+  }, [load]);
+
+  // 流しているあいだ、並びとどこまで聴いたかを残す。曲や並びが替わったときと、数秒ごと、ページを離れるとき。
+  // 戻したまま流していないあいだは、残したものをそのまま使う
+  const lastSaved = useRef(0);
+  const writeResume = useCallback(() => {
+    const { queue: q, index: i } = state.current;
+    if (q.length === 0) return;
+    const p = player.current;
+    saveResume({
+      queue: q,
+      index: i,
+      order: order.current,
+      position: p ? p.getCurrentTime() : 0,
+      duration: p ? p.getDuration() : 0,
+      context: contextRef.current,
+    });
+    lastSaved.current = performance.now();
+  }, []);
+  useEffect(() => {
+    if (resumable || queue.length === 0) return;
+    writeResume();
+  }, [resumable, queue, index, context, writeResume]);
+  useEffect(() => {
+    if (resumable || !playing) return;
+    if (performance.now() - lastSaved.current > SAVE_EVERY_MS) writeResume();
+  }, [time, resumable, playing, writeResume]);
+  useEffect(() => {
+    if (resumable) return;
+    window.addEventListener('pagehide', writeResume);
+    return () => window.removeEventListener('pagehide', writeResume);
+  }, [resumable, writeResume]);
 
   const current = queue[index] ?? null;
   useWakeLock(playing);
@@ -431,12 +517,20 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       el.style.removeProperty('width');
       el.style.removeProperty('height');
       el.style.removeProperty('clip-path');
-      // 右下の窓は画面に固定なので、大きさが変わるのは画面の幅が変わったときだけ
+      // 右下の窓は画面に固定なので、位置と大きさが変わるのは、画面の幅が変わったときと、窓の大きさ（dock-size.ts）や
+      // 寄せる側（dock-side.ts）を変えたときだけ。次に大きな置き場所へ移るときの出発点として覚え直す
       const remember = () => {
         lastBox.current = el.getBoundingClientRect();
       };
+      const observer = new ResizeObserver(remember);
+      observer.observe(el);
       window.addEventListener('resize', remember);
-      cleanup = () => window.removeEventListener('resize', remember);
+      const unsubscribe = subscribeDockSide(remember);
+      cleanup = () => {
+        observer.disconnect();
+        window.removeEventListener('resize', remember);
+        unsubscribe();
+      };
     }
 
     const to = el.getBoundingClientRect();
@@ -495,14 +589,32 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       playQueue: load,
       adoptQueue: adopt,
       toggle: () => {
-        if (playing) player.current?.pauseVideo();
+        if (resumable) resume();
+        else if (advanceOnPlay.current) next(1);
+        else if (playing) player.current?.pauseVideo();
         else if (player.current) player.current.playVideo();
         // YouTube の仕組みを読み込めずにプレイヤーが無いときは、いまの曲で読み込み直す
         else if (queue.length > 0) load(queue, index, context);
       },
       step,
+      upcoming: () =>
+        upcomingOf(
+          state.current.queue,
+          order.current,
+          positionRef.current,
+          playback.repeat === 'all',
+        ),
+      jumpTo: (i) => {
+        const { queue: q } = state.current;
+        if (q[i]) load(q, i, contextRef.current);
+      },
+      sleep,
+      setSleep,
+      resumable,
+      resume,
       close,
       seek: (seconds) => {
+        if (resumable) resumeAt.current = seconds;
         player.current?.seekTo(seconds, true);
         setTime((t) => ({ ...t, current: seconds, at: performance.now() }));
       },
@@ -543,6 +655,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       load,
       adopt,
       step,
+      next,
+      sleep,
+      setSleep,
+      resumable,
+      resume,
       close,
       time,
       sound,
@@ -552,39 +669,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   return (
     <Context value={value}>
       {children}
-      {/*
-        右下の窓の上に付ける帯。押すと曲の入ったアルバムの画面（お気に入りの並びなら、お気に入りの曲の画面）に移り、そこで大きく出る。
-        窓の中は YouTube のプレイヤーで、押すと YouTube 側の操作になるので、入口は窓の外に置く
-      */}
-      <div
-        aria-hidden={mode !== 'dock'}
-        inert={mode !== 'dock'}
-        className={`chrome-bottom ${DOCK_STRIP} ${FADE} z-30 flex items-center rounded-t-lg bg-sidebar/60 backdrop-blur-lg backdrop-saturate-150 ${mode === 'dock' ? '' : HIDDEN}`}
-      >
-        {shown && (
-          <Link
-            // お気に入りの並びで流しているときは、お気に入りの曲の画面で大きく出す（アルバムの画面では大きく出ない）
-            href={context === 'favorites' ? '/library/songs' : `/albums/${shown.albumId}`}
-            className="flex h-full min-w-0 flex-1 items-center gap-2 pl-3 text-xs text-muted transition-colors hover:text-foreground"
-          >
-            <span className="min-w-0 flex-1 truncate">
-              <span className="font-bold text-foreground">{shown.title}</span>
-              {' ・ '}
-              {shown.albumTitle}
-            </span>
-            <Icon name="expand" className="size-4 shrink-0" />
-          </Link>
-        )}
-        {/* 窓だけ消して音を流し続けることはできない（プレイヤーは見えている必要がある）ので、下の帯の × と同じく再生ごと止める */}
-        <button
-          type="button"
-          aria-label="プレイヤーを閉じる"
-          onClick={close}
-          className="grid h-full w-9 shrink-0 place-items-center text-muted transition-[color,scale] duration-150 ease-out hover:text-foreground active:scale-90"
-        >
-          <Icon name="close" className="size-4" />
-        </button>
-      </div>
+      <DockStrip
+        shown={shown}
+        open={mode === 'dock'}
+        favorites={context === 'favorites'}
+        onClose={close}
+      />
       {/* プレイヤーの上には何も重ねない（YouTube の規約）。200×200 を下回らない */}
       <div
         ref={frame}
@@ -592,13 +682,38 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         data-player-frame
         className={
           mode === 'slot'
-            ? 'fixed z-10 overflow-hidden rounded-lg bg-black [&>iframe]:size-full'
-            : `chrome-bottom ${DOCK} ${FADE} z-30 overflow-hidden rounded-b-lg bg-black shadow-2xl shadow-black/20 dark:shadow-black/60 [&>iframe]:size-full ${mode === 'none' ? HIDDEN : ''}`
+            ? `fixed z-10 overflow-hidden rounded-lg bg-black [&>iframe]:size-full ${resumable ? 'invisible' : ''}`
+            : `chrome-bottom ${DOCK} ${FADE} z-30 overflow-hidden rounded-b-lg bg-black shadow-2xl shadow-black/20 dark:shadow-black/60 [&>iframe]:size-full ${mode === 'none' || resumable ? HIDDEN : ''}`
         }
       />
+      {/*
+        戻した前の曲をまだ流していないあいだ、右下の窓の場所に、その曲のサムネイルと再生ボタンを出す（動画の枠は隠している）。
+        アルバムの画面では、その画面の大きな動画の場所に出す（player-stage.tsx）
+      */}
+      {resumable && mode === 'dock' && current && (
+        <button
+          type="button"
+          onClick={resume}
+          aria-label={`「${current.title}」の続きを再生`}
+          data-dock-cover
+          className={`group chrome-bottom ${DOCK} z-30 overflow-hidden rounded-b-lg bg-black shadow-2xl shadow-black/20 dark:shadow-black/60`}
+        >
+          <FadeImage
+            src={thumbOf(current.videoId)}
+            alt=""
+            fill
+            sizes="356px"
+            className="object-contain"
+          />
+          <span className="absolute top-1/2 left-1/2 grid size-14 -translate-1/2 place-items-center rounded-full bg-accent text-background shadow-lg transition-[scale] duration-200 ease-out group-hover:scale-105 group-active:scale-95">
+            <Icon name="play" className="size-8" />
+          </span>
+        </button>
+      )}
       <PlayerBar item={shown} open={mode !== 'none'} />
       <PlayerKeys />
       <SongTitle />
+      <HistoryRecorder />
     </Context>
   );
 }

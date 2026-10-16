@@ -15,6 +15,7 @@ import { songKeyOf } from '@/lib/library';
 import { thumbOf } from '@/lib/thumb';
 import { Heading } from '@/components/heading';
 import { Marquee } from '@/components/marquee';
+import { playStart } from '@/components/player/play-order';
 
 /**
  * お気に入りの曲の画面。お気に入りの曲を1本のプレイリストとして扱う（アルバムの画面と同じ作り）。
@@ -33,8 +34,11 @@ export function FavoriteSongs() {
     : songs;
   const here = context === 'favorites' && !!current;
 
+  // 曲を選ばずに「再生」を押したときは、押すたびに同じ曲から始まらないよう、並びのどこかの曲から始める（play-order.ts）
   const play = (song?: QueueItem) => {
-    const at = song ? songs.findIndex((s) => songKeyOf(s) === songKeyOf(song)) : 0;
+    const at = song
+      ? songs.findIndex((s) => songKeyOf(s) === songKeyOf(song))
+      : playStart(songs.length);
     playQueue(songs, Math.max(0, at), 'favorites');
   };
 

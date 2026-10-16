@@ -1,9 +1,10 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { ARTIST_GRID, COVER_GRID, CoverCard } from '@/components/cover-card';
 import { SongList } from '@/components/song-list';
+import { addRecentSearch, clearRecentSearches, useRecentSearches } from '@/lib/recent-searches';
 import { search, type SearchIndex } from '@/lib/search';
 import { Heading } from '@/components/heading';
 
@@ -30,9 +31,47 @@ export function SearchResults() {
   }, []);
 
   const result = useMemo(() => (index ? search(index, query) : null), [index, query]);
+  const recent = useRecentSearches();
+  const router = useRouter();
 
   if (!query.trim()) {
-    return <p className="pt-8 text-muted">曲名・アルバム名・アーティスト名で探せます。</p>;
+    return (
+      <>
+        <p className="pt-8 text-muted">曲名・アルバム名・アーティスト名で探せます。</p>
+        {/* 最近の検索の言葉（recent-searches.ts）。押すとその言葉で探す */}
+        {recent.length > 0 && (
+          <section className="mt-7 sm:mt-10">
+            <div className="mb-4 flex items-end gap-3">
+              <Heading eyebrow="Recent">最近の検索</Heading>
+              <button
+                type="button"
+                onClick={clearRecentSearches}
+                className="mb-1 ml-auto rounded-full border border-line/60 bg-sidebar/60 px-3 py-1 text-xs font-bold text-foreground transition-colors hover:bg-sidebar/90"
+              >
+                検索履歴を削除
+              </button>
+            </div>
+            <ul className="flex flex-wrap gap-2">
+              {recent.map((q) => (
+                <li key={q} className="min-w-0">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      router.replace(`/search?q=${encodeURIComponent(q)}`, { scroll: false })
+                    }
+                    title={q}
+                    // 長い言葉は「…」で切り、札が画面からはみ出さないようにする
+                    className="block max-w-60 truncate rounded-full border border-line/60 bg-sidebar/60 px-4 py-1.5 text-sm transition-colors hover:bg-sidebar/90"
+                  >
+                    {q}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </>
+    );
   }
   if (!index) return <p className="pt-8 text-muted">読み込んでいます…</p>;
   if (!result || (!result.artists.length && !result.albums.length && !result.songs.length)) {
@@ -40,7 +79,15 @@ export function SearchResults() {
   }
 
   return (
-    <div className="pt-4">
+    // 結果（曲・アーティスト・アルバム）を押したら、そのときの言葉を最近の検索に残す。打っただけの言葉は残さない
+    <div
+      className="pt-4"
+      onClickCapture={(e) => {
+        const hit = (e.target as HTMLElement).closest('a, button');
+        // 曲の行のハートは結果を選んだことにならないので数えない
+        if (hit && !hit.matches('[aria-pressed]')) addRecentSearch(query.trim());
+      }}
+    >
       {result.songs.length > 0 && (
         <Section title="楽曲" count={result.songs.length} limit={LIMIT.songs}>
           <SongList songs={result.songs.slice(0, LIMIT.songs)} />

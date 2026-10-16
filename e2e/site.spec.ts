@@ -99,8 +99,9 @@ test('お気に入りの曲の画面で並べ替えると、その順が残り�
 
   await page.goto('/library/songs');
   const titles = () => page.locator('ol li span.font-bold').allTextContents();
+  // 一覧は索引（/library-index）が届いてから出るので、出るまで待ってから数える
+  await expect.poll(titles).toHaveLength(3);
   const before = await titles();
-  expect(before).toHaveLength(3);
 
   // 3曲目のつまみを1曲目の上へドラッグする
   const handles = page.getByRole('button', { name: /を並べ替え$/ });

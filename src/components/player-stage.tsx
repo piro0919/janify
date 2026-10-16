@@ -5,6 +5,7 @@ import { type ReactNode, useEffect, useLayoutEffect, useRef } from 'react';
 import { FadeImage } from './fade-image';
 import { Icon } from './icon';
 import { leave } from '@/lib/leave';
+import { thumbOf } from '@/lib/thumb';
 import { usePlayer } from './player/player-provider';
 
 /**
@@ -29,7 +30,7 @@ export function PlayerStage({
   label: string;
   onPlay: () => void;
 }) {
-  const { setSlot } = usePlayer();
+  const { setSlot, resumable, resume, current } = usePlayer();
   const slot = useRef<HTMLDivElement>(null);
 
   // 画面を描く前に置き場所を知らせる。描いたあとだと、最初の1曲を流し始めた瞬間に、
@@ -56,31 +57,58 @@ export function PlayerStage({
       </div>
       <div className="max-md:fixed max-md:inset-x-0 max-md:top-0 max-md:z-40 max-md:bg-background">
         {active ? (
-          <div ref={slot} className="aspect-video w-full bg-black md:rounded-lg" />
-        ) : (
-          <button
-            type="button"
-            onClick={onPlay}
-            aria-label={label}
-            className="group relative block aspect-video w-full overflow-hidden bg-surface md:rounded-lg"
-          >
-            {cover && (
-              <FadeImage
-                src={cover}
-                alt=""
-                fill
-                loading="eager"
-                sizes="(min-width: 1024px) 60vw, 100vw"
-                className="object-cover"
+          <div ref={slot} className="relative aspect-video w-full bg-black md:rounded-lg">
+            {/*
+              開き直して戻した前の曲をまだ流していないあいだは、プレイヤーを作っておらず、動画の枠も隠している。
+              代わりにその曲のサムネイルと再生ボタンを出し、押すと聴いていた位置から流す（player-resume.ts）
+            */}
+            {resumable && current && (
+              <CoverButton
+                cover={thumbOf(current.videoId)}
+                label={`「${current.title}」の続きを再生`}
+                onPlay={resume}
               />
             )}
-            <span className="absolute top-1/2 left-1/2 grid size-16 -translate-1/2 place-items-center rounded-full bg-accent text-background shadow-lg transition-[scale] duration-200 ease-out group-hover:scale-105 group-active:scale-95">
-              <Icon name="play" className="size-9" />
-            </span>
-          </button>
+          </div>
+        ) : (
+          <CoverButton cover={cover} label={label} onPlay={onPlay} />
         )}
       </div>
     </>
+  );
+}
+
+/** サムネイルの上に再生ボタンを重ねたボタン。サムネイルの上に重ねてよいのは再生ボタンだけ（YouTube の規約） */
+function CoverButton({
+  cover,
+  label,
+  onPlay,
+}: {
+  cover: string | null;
+  label: string;
+  onPlay: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onPlay}
+      aria-label={label}
+      className="group relative block aspect-video w-full overflow-hidden bg-surface md:rounded-lg"
+    >
+      {cover && (
+        <FadeImage
+          src={cover}
+          alt=""
+          fill
+          loading="eager"
+          sizes="(min-width: 1024px) 60vw, 100vw"
+          className="object-cover"
+        />
+      )}
+      <span className="absolute top-1/2 left-1/2 grid size-16 -translate-1/2 place-items-center rounded-full bg-accent text-background shadow-lg transition-[scale] duration-200 ease-out group-hover:scale-105 group-active:scale-95">
+        <Icon name="play" className="size-9" />
+      </span>
+    </button>
   );
 }
 

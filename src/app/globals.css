@@ -246,7 +246,7 @@ html[data-player='slot'] .page-bottom {
   padding-bottom: calc(3.5rem + 4rem + 2rem);
 }
 html[data-player='dock'] .page-bottom {
-  padding-bottom: calc(3.5rem + 4rem + 200px + 2.25rem + 2rem);
+  padding-bottom: calc(3.5rem + 4rem + var(--dock-h) + var(--dock-strip) + 2rem);
 }
 @media (min-width: 48rem) {
   .page-bottom {
@@ -255,8 +255,150 @@ html[data-player='dock'] .page-bottom {
   html[data-player='slot'] .page-bottom {
     padding-bottom: calc(4rem + 2rem);
   }
-  /* 右下の窓（高さ 200px と上の帯 2.25rem）が、ページの最後の部分を隠さないよう、その分の余白を足す */
+  /* 右下の窓（動画と上の帯）が、ページの最後の部分を隠さないよう、その分の余白を足す */
   html[data-player='dock'] .page-bottom {
-    padding-bottom: calc(4rem + 200px + 2.25rem + 2rem);
+    padding-bottom: calc(4rem + var(--dock-h) + var(--dock-strip) + 2rem);
   }
+}
+
+/*
+ * 右下の窓（動画）とその上の帯の置き場所と大きさ（player-provider.tsx）。窓は 640px 未満の幅では規約の下限ちょうどの
+ * 200×200 の正方形、640px からは 16:9 の 356×200（iPad の縦向きでも 16:9 にする。Vocafy から移した）。
+ * パソコンの幅では、窓の角の引き手で 16:9 のまま大きくできる（dock-size.ts が html に --dock-size を書く）。
+ * 左に寄せる設定（dock-setting.ts。html の data-dock）では左下に置き、パソコンの幅では左のメニュー（w-60）の右隣に置く
+ */
+:root {
+  --dock-w: 200px;
+  --dock-h: 200px;
+  --dock-strip: 2.25rem;
+  --dock-bottom: calc(7.5rem + 12px);
+  --dock-x: 1rem;
+}
+@media (min-width: 40rem) {
+  :root {
+    --dock-w: 356px;
+  }
+}
+@media (min-width: 48rem) {
+  :root {
+    --dock-w: var(--dock-size, 356px);
+    --dock-h: calc(var(--dock-w) * 9 / 16);
+    --dock-bottom: calc(4rem + 16px);
+  }
+}
+.dock-box,
+.dock-strip {
+  right: var(--dock-x);
+  width: var(--dock-w);
+}
+.dock-box {
+  bottom: var(--dock-bottom);
+  height: var(--dock-h);
+}
+.dock-strip {
+  bottom: calc(var(--dock-bottom) + var(--dock-h));
+  height: var(--dock-strip);
+}
+html[data-dock='left'] :is(.dock-box, .dock-strip) {
+  right: auto;
+  left: var(--dock-x);
+}
+@media (min-width: 48rem) {
+  html[data-dock='left'] :is(.dock-box, .dock-strip) {
+    left: calc(15rem + var(--dock-x));
+  }
+}
+
+/*
+ * 次に流れる曲などの板（floating-panel.tsx）の置き場所と高さの上限。動画の上に重ねない（YouTube の規約）。
+ * 下の帯の上に出し、右下の窓で流しているときは窓の帯の上に積む。スマホの詳細画面では、上に固定した動画の下までに収める。
+ * パソコンは右に寄せ、右下の窓で流しているときは窓と同じ幅・同じ側に出す
+ */
+:root {
+  --panel-bottom: calc(7.5rem + 12px);
+  --panel-max: 28rem;
+}
+html[data-player='dock'] {
+  --panel-bottom: calc(var(--dock-bottom) + var(--dock-h) + var(--dock-strip) + 12px);
+  --panel-max: calc(100dvh - var(--panel-bottom) - 12px);
+}
+@media (max-width: 47.99rem) {
+  /* 詳細画面では帯と板がタブの分（3.5rem）だけ下へずれる（.chrome-bottom） */
+  html[data-watch] {
+    --panel-max: calc(100dvh - 56.25vw - var(--panel-bottom) + 3.5rem - 12px);
+  }
+}
+@media (min-width: 48rem) {
+  :root {
+    --panel-bottom: calc(4rem + 16px);
+  }
+  /* 上のヘッダーの下まで */
+  html[data-player='dock'] {
+    --panel-max: calc(100dvh - var(--panel-bottom) - 5rem);
+  }
+}
+.float-panel {
+  left: 1rem;
+  right: 1rem;
+  bottom: var(--panel-bottom);
+  max-height: var(--panel-max);
+}
+@media (min-width: 48rem) {
+  .float-panel {
+    left: auto;
+    width: 24rem;
+  }
+  html[data-player='dock'] .float-panel {
+    width: var(--dock-w);
+  }
+  html[data-player='dock'][data-dock='left'] .float-panel {
+    right: auto;
+    left: calc(15rem + var(--dock-x));
+  }
+}
+
+/*
+ * パソコンの右下の窓の大きさを変える引き手（dock-strip.tsx・dock-size.ts）。窓の外側の角の丸みに沿った小さな弧を、
+ * 角のすぐ外に描く（Vocafy から移した。iPad のステージマネージャと同じ形）。ふだんは出さず、窓か帯にマウスが乗っているあいだだけ
+ * 薄く出し、弧に乗せると字の色で濃くする。右に寄せた窓は左上の角、左に寄せた窓は右上の角（data-dock-arc の値）
+ */
+[data-dock-arc] {
+  --arc-gap: 0.25rem;
+  position: absolute;
+  top: calc(var(--arc-gap) * -1);
+  width: 1rem;
+  height: 1rem;
+  border-style: solid;
+  border-color: currentColor;
+  border-width: 0;
+  opacity: 0;
+  transition:
+    opacity 150ms var(--ease-out),
+    color 150ms var(--ease-out);
+}
+[data-dock-arc='left'] {
+  left: calc(var(--arc-gap) * -1);
+  border-top-width: 2px;
+  border-left-width: 2px;
+  border-top-left-radius: calc(0.5rem + var(--arc-gap));
+}
+[data-dock-arc='right'] {
+  right: calc(var(--arc-gap) * -1);
+  border-top-width: 2px;
+  border-right-width: 2px;
+  border-top-right-radius: calc(0.5rem + var(--arc-gap));
+}
+/* つかめる範囲は、見た目の弧より周りに広げる。帯の高さの中に収まり、動画の枠までは届かない */
+[data-dock-arc]::before {
+  content: '';
+  position: absolute;
+  inset: -0.625rem;
+}
+html:has([data-player-frame]:hover, [data-dock-strip]:hover) [data-dock-arc] {
+  opacity: 0.4;
+}
+/* 弧そのものに乗せたとき・引いているとき。上の「窓に乗せたとき」より強く効かせる */
+html:has([data-dock-arc]:is(:hover, :active)) [data-dock-arc]:is(:hover, :active) {
+  opacity: 0.8;
+  color: var(--foreground);
 }

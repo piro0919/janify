@@ -7,6 +7,7 @@ import { test as base, expect, type Page } from '@playwright/test';
  * - YouTube の仕組み（iframe_api）は、本物と同じ形でプレイヤーを作る偽物を返す。頼まれたら「再生中」を知らせ、
  *   一時停止を頼まれたら「一時停止」を知らせる。曲が終わったり流せなかったりはしないので、勝手に次の曲へは進まない
  * - YouTube の埋め込みのページは空のページを返す。テストは埋め込みの住所（src）で、どの曲を流したかを見る
+ * - 曲の終わりは、テストから window.__ytEnd() で起こす
  *
  * 曲送りを確かめるテストは、Shift+→ などで明示して送る
  */
@@ -22,6 +23,8 @@ const FAKE_IFRAME_API = `
       this.iframe = document.createElement('iframe');
       el.replaceWith(this.iframe);
       if (options.videoId) this.show(options.videoId);
+      // テストから曲の終わりを起こす口（window.__ytEnd()）
+      window.__ytEnd = () => this.state(STATE.ENDED);
       setTimeout(() => this.events.onReady && this.events.onReady({ target: this }), 0);
     }
     show(id) {

@@ -1,17 +1,37 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { FloatingPanel } from './floating-panel';
+import { KeyList } from './keyboard-help';
 import { now } from './player-bar';
 import { usePlayer } from './player-provider';
 
-/** 音量を1回で変える幅と、矢印で飛ぶ秒数 */
+/** 音量を1回で変える幅と、矢印・J L で飛ぶ秒数 */
 const VOLUME_STEP = 10;
 const SEEK_STEP = 5;
+const LONG_SEEK_STEP = 10;
+/** 数字のキーで飛ぶ位置の刻み（5 なら全体の50%。YouTube と同じ） */
+const DIGITS = 10;
 
 /**
- * キーボードでプレイヤーを操作する。何か流しているとき（順番待ちがあるとき）だけ受ける。
+ * 当てはまる要素のうち、画面に見えている最初のもの。隠した帯の中（inert）は見えていないとみなす。
+ * checkVisibility は Safari 17.4 から。無いブラウザでは、箱を持つか（display: none とその中は持たない）と visibility で見る
+ */
+function firstShown<T extends HTMLElement>(selector: string): T | undefined {
+  return [...document.querySelectorAll<T>(selector)].find((el) => {
+    if (el.closest('[inert]')) return false;
+    if (typeof el.checkVisibility === 'function') return el.checkVisibility();
+    return el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+  });
+}
+
+/**
+ * キーボードでプレイヤーとサイトを操作する（一覧は keyboard-help.tsx）。YouTube の割り当てに寄せた（Vocafy から移した）。
  *
- * Space 再生・一時停止 / ← → 5秒戻る・進む / Shift+← → 前の曲・次の曲 / ↑ ↓ 音量 / M 消音 / S ランダム / R ループ
+ * 何か流しているとき（順番待ちがあるとき）だけ受けるもの。Space・K 再生・一時停止 / ← → 5秒戻る・進む / J L 10秒戻る・進む /
+ * 0〜9 全体の0〜90%へ / Shift+← →・Shift+P N 前の曲・次の曲 / ↑ ↓ 音量 / M 消音 / S ランダム / R ループ。
+ * いつでも受けるもの。/ 検索欄へ移る / ? 一覧の板を開く（YouTube と同じ）
  *
  * 次のときは受けない。文字を打っているとき（検索欄など）。キーを自分で使う部品に注目があるとき
  * （再生位置のつまみ、お気に入りの並べ替えのつまみ。data-own-keys の印）。ボタンやリンクの上の Space は、
@@ -19,30 +39,89 @@ const SEEK_STEP = 5;
  * （YouTube の側も Space や ← → で同じように動く）
  */
 export function PlayerKeys() {
-  const player = usePlayer();
+  const current = usePlayer();
+  // キーの受け口は付けたままにし、そのときのプレイヤーの状態を読む。状態をそのまま見張ると、流しているあいだは
+  // 再生位置が 0.5 秒ごとに変わるので、そのたびに受け口を付け直すことになる
+  const playerRef = useRef(current);
+  useEffect(() => {
+    playerRef.current = current;
+  }, [current]);
+  const [helpOpen, setHelpOpen] = useState(false);
+  // 板は初めて開くまで描かない（読み込んだ直後のサーバーの HTML と食い違わせない）。一度描いたら、閉じる動きのために置いたままにする
+  const [helpMounted, setHelpMounted] = useState(false);
+  // 板を閉じたら、開く前にフォーカスのあった所へ戻す
+  const opener = useRef<HTMLElement | null>(null);
+  const closeHelp = useCallback(() => setHelpOpen(false), []);
 
   useEffect(() => {
-    if (player.queue.length === 0) return;
     const onKey = (e: KeyboardEvent) => {
+      const player = playerRef.current;
       if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
       const target = e.target instanceof HTMLElement ? e.target : null;
       if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
       if (target?.closest('[role="slider"], [data-own-keys]')) return;
 
-      const t = now(player.time, player.playing);
+      if (e.key === '?') {
+        e.preventDefault();
+        // フォーカスがどこにも無い（body）ときは持たない。body を開いたボタンとして渡すと、どこを押しても板の外と見なされず閉じない
+        if (!helpOpen) {
+          const active = document.activeElement;
+          opener.current =
+            active instanceof HTMLElement && active !== document.body ? active : null;
+        }
+        setHelpMounted(true);
+        setHelpOpen((open) => !open);
+        return;
+      }
+      if (e.key === '/') {
+        // 見えている検索欄へ移る（パソコンの上の帯。スマホは虫めがねを押すまで欄が無い）
+        const field = firstShown<HTMLInputElement>('input[type="search"]');
+        if (!field) return;
+        e.preventDefault();
+        field.focus();
+        return;
+      }
+
+      if (player.queue.length === 0) return;
+      const { time } = player;
+      const t = now(time, player.playing);
+      const seekBy = (sec: number) => player.seek(Math.min(time.duration, Math.max(0, t + sec)));
+      if (/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+        player.seek((time.duration * Number(e.key)) / DIGITS);
+        return;
+      }
       let handled = true;
       switch (e.key) {
         case ' ':
           if (target?.closest('button, a, summary')) return;
           player.toggle();
           break;
+        case 'k':
+        case 'K':
+          player.toggle();
+          break;
+        case 'j':
+        case 'J':
+          seekBy(-LONG_SEEK_STEP);
+          break;
+        case 'l':
+        case 'L':
+          seekBy(LONG_SEEK_STEP);
+          break;
+        case 'P':
+        case 'N':
+          // YouTube と同じく Shift と一緒のときだけ
+          if (!e.shiftKey) return;
+          player.step(e.key === 'N' ? 1 : -1);
+          break;
         case 'ArrowLeft':
           if (e.shiftKey) player.step(-1);
-          else player.seek(Math.max(0, t - SEEK_STEP));
+          else seekBy(-SEEK_STEP);
           break;
         case 'ArrowRight':
           if (e.shiftKey) player.step(1);
-          else player.seek(Math.min(player.time.duration, t + SEEK_STEP));
+          else seekBy(SEEK_STEP);
           break;
         case 'ArrowUp':
           player.setVolume(Math.min(100, player.volume + VOLUME_STEP));
@@ -70,7 +149,16 @@ export function PlayerKeys() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [player]);
+  }, [helpOpen]);
 
-  return null;
+  // 板は次に再生する曲と同じ外枠で、動画に重ねない置き場所に出す（YouTube の規約）
+  if (!helpMounted) return null;
+  return createPortal(
+    <FloatingPanel open={helpOpen} onClose={closeHelp} trigger={opener} title="キーボード操作">
+      <div className="min-h-0 overflow-y-auto pt-1 pb-3">
+        <KeyList />
+      </div>
+    </FloatingPanel>,
+    document.body,
+  );
 }

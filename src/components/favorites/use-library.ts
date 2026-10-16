@@ -6,7 +6,8 @@ import type { LibraryIndex } from '@/lib/library';
 import { useFavorites } from './use-favorites';
 
 let loading: Promise<LibraryIndex> | undefined;
-const loadLibraryIndex = () =>
+/** 今掲載しているものの索引（/library-index）。お気に入りと視聴履歴の画面が読む。1つのタブで1回だけ取りに行く */
+export const loadLibraryIndex = () =>
   (loading ??= fetch('/library-index').then((r) => r.json() as Promise<LibraryIndex>));
 
 export type LibraryAlbum = LibraryIndex['albums'][string] & { id: string };

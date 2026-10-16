@@ -19,6 +19,7 @@ export function SongList({
   songs,
   columns,
   favorites,
+  onPick,
 }: {
   songs: QueueItem[];
   columns?: boolean;
@@ -27,11 +28,13 @@ export function SongList({
    * お気に入りの並び順で流れる（トップやライブラリのお気に入りの棚。songs はその一部のこともある）
    */
   favorites?: QueueItem[];
+  /** 渡すと、押した曲は画面を移らずにこれを呼ぶ（次に流れる曲の板。i は songs の何番目か） */
+  onPick?: (i: number) => void;
 }) {
   const { current, playing, playQueue } = usePlayer();
   // ハートは、曲を1曲ずつ扱う一覧（検索の結果など）にだけ出す。横に流す棚（人気曲・よく収録されている曲）と、
   // お気に入りの一覧（全部お気に入りなので意味がない）には出さない。出し入れはアルバムの曲目とお気に入りの曲の画面でもできる
-  const hearts = !columns && !favorites;
+  const hearts = !columns && !favorites && !onPick;
   const router = useRouter();
   return (
     <div
@@ -55,7 +58,8 @@ export function SongList({
             <button
               type="button"
               onClick={() => {
-                if (favorites) {
+                if (onPick) onPick(i);
+                else if (favorites) {
                   const at = favorites.findIndex((f) => songKeyOf(f) === songKeyOf(song));
                   playQueue(favorites, Math.max(0, at), 'favorites');
                   router.push('/library/songs');

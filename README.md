@@ -7,13 +7,16 @@
 ## ✨ Features
 
 - 💿 Browse 44 artists, 457 albums and 612 singles by artist, by album or by decade, with each artist's YouTube channel icon
-- ▶️ Play a whole album in order, with shuffle and repeat
-- 🎬 One player for the whole site, so playback continues while you browse
+- ▶️ Play a whole album in order, with shuffle and repeat; the play button starts from a random track and continues in order
+- 📋 An up-next list you can jump around in, and a sleep timer (15 min to 1 hour, or end of the song)
+- ⏯️ Reopen the site within 12 hours and the last song is back where you left it (can be turned off in settings)
+- 🎬 One player for the whole site, so playback continues while you browse; the mini player can sit on the left or right, and be resized on desktop
 - 📲 A full-screen player view on phones; pull the title down to shrink the player to a corner
-- ⌨️ Keyboard shortcuts (space, arrows, M, S, R), listed on the settings page
+- ⌨️ YouTube-style keyboard shortcuts (Space/K, J/L, 0–9, arrows, M, S, R, / and ? for the list)
 - 🔆 Keeps the phone screen awake while playing
 - ❤️ Favorite songs, albums and artists; favorite songs form a playlist you can reorder
-- 🔍 Search across every artist, album and song (`/search`)
+- 🔍 Search across every artist, album and song (`/search`), with recent searches
+- 🕘 Listening history of the last 100 songs (`/library/history`)
 - 🌗 Dark and light themes
 - 📱 PWA-ready, installable to the home screen, with an optional edge swipe to go back on iOS
 
