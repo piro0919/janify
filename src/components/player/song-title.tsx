@@ -1,0 +1,53 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+import { usePlayer } from './player-provider';
+
+/**
+ * 曲を流しているあいだ、タブの題名を「曲名 - アーティスト | Janify」にする（Spotify の Web 版と同じ。Vocafy から移した）。
+ * 止めたら、その画面の題名に戻す。Next.js は画面を移るたびに題名を書き換えるので、書き換えを見張り、
+ * 流しているあいだは曲名に上書きし直す。画面には何も出さない
+ */
+export function SongTitle() {
+  const { current, playing } = usePlayer();
+  // その画面の題名（Next.js が付けたもの）と、こちらが付けた題名
+  const page = useRef<string | null>(null);
+  const ours = useRef<string | null>(null);
+  const wanted = current && playing ? `${current.title} - ${current.artistName} | Janify` : null;
+  const wantedRef = useRef(wanted);
+
+  useEffect(() => {
+    wantedRef.current = wanted;
+    if (wanted) {
+      if (ours.current === null) page.current = document.title;
+      ours.current = setTitle(wanted);
+    } else if (ours.current !== null) {
+      ours.current = null;
+      if (page.current !== null) document.title = page.current;
+    }
+  }, [wanted]);
+
+  // 画面を移って Next.js が題名を書き換えたら、それをその画面の題名として覚え、流しているなら曲名に戻す
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      if (document.title === ours.current) return;
+      page.current = document.title;
+      const next = wantedRef.current;
+      if (next) ours.current = setTitle(next);
+    });
+    observer.observe(document.head, { subtree: true, childList: true, characterData: true });
+    return () => observer.disconnect();
+  }, []);
+
+  return null;
+}
+
+/**
+ * 題名を書き、ブラウザが読み返す形を返す。ブラウザは読むときに続いた空白を1つに詰め、頭と末尾の空白を外すので、
+ * 書いた文字のまま覚えると読み返しと食い違う。食い違うと見張りが「書き換えられた」とみなして書き直し、
+ * その書き直しをまた拾って、止まらずに回り続ける（Vocafy で、末尾に空白のある曲名でページが固まった）
+ */
+function setTitle(title: string): string {
+  document.title = title;
+  return document.title;
+}
