@@ -23,18 +23,24 @@ const playfair = Playfair_Display({
   style: 'italic',
 });
 
-// 本文・ボタン・説明の字。読みやすさを優先したゴシック体
+// 本文・ボタン・説明の字。読みやすさを優先したゴシック体。
+// 日本語の書体は先読みしない。先読みにすると、日本語の分割ファイルがすべて latin として先読みに入り、
+// どのページも初めて開くたびに使わない字まで読み込ませる（Vocafy で、太字だけで119個・1.4MB だった）。
+// 先読みしなくても、字は CSS の unicode-range で、画面に出る字の分だけ読み込まれる
 const zenKaku = Zen_Kaku_Gothic_New({
   variable: '--font-body',
   subsets: ['latin'],
   weight: ['400', '700'],
+  preload: false,
 });
 
-// 見出し・アルバム名・アーティスト名の字。ロゴのセリフ体に合う、品のある明朝体。大きな字にだけ使う
+// 見出し・アルバム名・アーティスト名の字。ロゴのセリフ体に合う、品のある明朝体。大きな字にだけ使う。
+// 本文の字と同じく先読みしない
 const shippori = Shippori_Mincho_B1({
   variable: '--font-shippori',
   subsets: ['latin'],
   weight: '800',
+  preload: false,
 });
 
 export const metadata: Metadata = {
