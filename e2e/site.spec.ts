@@ -1,4 +1,5 @@
-import { expect, type Page, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 test('トップに棚が並び、横にはみ出さない', async ({ page }) => {
   await page.goto('/');
@@ -33,11 +34,15 @@ test('人気曲を押すと、曲の入ったアルバムの画面へ移り、�
   // アルバムの画面では、プレイヤーは右下の窓ではなく大きな置き場所に出る
   await expect(page.locator('html')).toHaveAttribute('data-player', 'slot');
   await expect(page.locator('iframe[src*="youtube.com/embed"]')).toBeAttached();
-  // 押した曲が曲目の中で再生中になり、アルバムに2曲以上あれば「次の曲」が押せる（順番待ちがアルバムの曲目になった）
-  // 自動のブラウザでは Topic の音源の一部が再生できず、次の曲へ進むことがある（CLAUDE.md の落とし穴）。
-  // 押した曲そのものではなく、アルバムの曲目のどれかが再生中になったことを確かめる
+  // 押した曲が曲目の中で再生中になり、アルバムに2曲以上あれば「次の曲」が押せる（順番待ちがアルバムの曲目になった）。
+  // YouTube は偽物（fixtures.ts）で、勝手に次の曲へは進まない
   expect(title.length).toBeGreaterThan(0);
-  await expect(page.locator('ol li').getByLabel('再生中')).toBeVisible();
+  await expect(
+    page
+      .locator('ol li')
+      .filter({ has: page.getByLabel('再生中') })
+      .filter({ hasText: title }),
+  ).toBeVisible();
   const playable = await page.locator('ol li button:not([disabled])').count();
   const last = await page.locator('ol li').last().filter({ hasText: title }).count();
   if (playable > 2 && last === 0) {
@@ -138,4 +143,15 @@ test('いきなり検索の画面を開いて閉じると、サイトの外で�
   await page.goto('/search?q=love');
   await page.getByRole('button', { name: '検索を閉じる' }).click();
   await expect(page).toHaveURL(/\/$/);
+});
+
+test('流しているあいだはタブの題名が曲名になり、止めると画面の題名に戻る', async ({ page }) => {
+  await page.goto('/');
+  const row = page.locator('section').filter({ hasText: '人気曲' }).locator('.group').first();
+  const title = (await row.locator('span.truncate').first().textContent())?.trim() ?? '';
+  await row.locator('button').first().click();
+  await expect(page).toHaveURL(/\/albums\//);
+  await expect.poll(async () => (await page.title()).startsWith(`${title} - `)).toBe(true);
+  await page.keyboard.press('Space');
+  await expect.poll(() => page.title()).not.toContain(`${title} - `);
 });
