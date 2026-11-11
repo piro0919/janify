@@ -3,23 +3,22 @@
 // 検索は1回100単位で、無料枠では1日100回ほど。多くのアルバムに入っている曲（シングルなど）から先に検索する。
 // 同じ曲がベスト盤などに何度も出てくるので、検索は曲ごとに1回で、当たりは同じ曲すべてに配る。
 // 一日分を使い切ったら止まり、翌日に走らせ直すと続きから検索する。
+// 1回目で当たらなかった曲は、全曲の1回目が終わってから、ライブなどの映像も取る形でもう一度だけ検索する（searchedLoose）。
 //   pnpm youtube:unofficial        残りを、枠の許す限り
 //   pnpm youtube:unofficial 5      5曲だけ検索する（試し用）
 import { existsSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { bareTitle, norm, songKey } from './lib/song';
+import { pickUnofficial } from './lib/unofficial-pick';
 import { youtube } from './lib/youtube';
 
 type Album = { artist: string; page: string; title: string; tracks: string[] };
 type Artist = { name: string; page: string };
-type Found = { videoId: string; videoTitle: string; channel: string };
-type State = { searched: string[]; songs: Record<string, Found> };
+/** loose は、緩めて選んだもの（ライブや番組の映像のことがある） */
+type Found = { videoId: string; videoTitle: string; channel: string; loose?: true };
+type State = { searched: string[]; searchedLoose?: string[]; songs: Record<string, Found> };
 
 const STATE_FILE = 'data/raw/unofficial.json';
-
-// 歌ってみた・演奏・カラオケ・反応動画などは本人の歌ではない
-const NOT_ORIGINAL =
-  /cover|カバー|歌ってみた|弾いてみた|叩いてみた|踊ってみた|piano|ピアノ|guitar|ギター|カラオケ|karaoke|instrumental|インスト|オルゴール|music box|8bit|耳コピ|練習|tutorial|react|リアクション|ハモ|アカペラ|a cappella|remix|ai\s*cover|比較|#shorts|解説|dance studio|tiktok/i;
 
 async function main() {
   const limit = Number(process.argv[2] ?? Infinity);
@@ -46,13 +45,24 @@ async function main() {
     });
   }
 
-  const queue = [...songs.entries()]
-    .filter(([key]) => !state.searched.includes(key))
-    .sort((a, b) => b[1].count - a[1].count);
-  console.error(`検索が要る曲 ${queue.length} 曲`);
+  // 1回目の検索がすべて済んでから、1回目で当たらなかった曲を緩めて検索し直す
+  state.searchedLoose ??= [];
+  const searched = new Set(state.searched);
+  const searchedLoose = new Set(state.searchedLoose);
+  const byCount = (a: [string, { count: number }], b: [string, { count: number }]) =>
+    b[1].count - a[1].count;
+  const strict = [...songs.entries()].filter(([key]) => !searched.has(key)).toSorted(byCount);
+  const loose = [...songs.entries()]
+    .filter(([key]) => searched.has(key) && !state.songs[key] && !searchedLoose.has(key))
+    .toSorted(byCount);
+  const queue = [
+    ...strict.map((e) => [...e, false] as const),
+    ...loose.map((e) => [...e, true] as const),
+  ];
+  console.error(`検索が要る曲 ${strict.length} 曲、緩めて検索し直す曲 ${loose.length} 曲`);
 
   let searches = 0;
-  for (const [key, song] of queue) {
+  for (const [key, song, isLoose] of queue) {
     if (searches >= limit) break;
     let items: { id: { videoId: string }; snippet: { title: string; channelTitle: string } }[];
     try {
@@ -74,26 +84,22 @@ async function main() {
       throw e;
     }
     searches++;
-    state.searched.push(key);
+    (isLoose ? state.searchedLoose : state.searched).push(key);
 
-    // 題名にアーティスト名と曲名が両方入り、アーティスト名と曲名を除くと残りが短いものを取る。
-    // 「Love」が「Love so sweet」に当たったり、メドレーや番組の切り抜きに当たったりするのを防ぐ
-    const artist = norm(song.artist);
-    const title = norm(song.title);
-    const hit = items.find((v) => {
-      const t = norm(v.snippet.title);
-      if (!t.includes(artist) || !t.includes(title) || NOT_ORIGINAL.test(v.snippet.title))
-        return false;
-      const rest = t.replace(artist, '').replace(title, '');
-      return rest.length <= 12;
-    });
+    // 緩めて検索し直すときも、厳しい条件に合うものがあればそちらを先に取る
+    const strictHit = pickUnofficial(items, song.artist, song.title, false);
+    const hit =
+      strictHit ?? (isLoose ? pickUnofficial(items, song.artist, song.title, true) : undefined);
     if (hit)
       state.songs[key] = {
         videoId: hit.id.videoId,
         videoTitle: hit.snippet.title,
         channel: hit.snippet.channelTitle,
+        ...(strictHit ? {} : { loose: true as const }),
       };
-    console.error(`${song.artist} / ${song.title}: ${hit ? hit.snippet.title : 'なし'}`);
+    console.error(
+      `${isLoose ? '[緩めて] ' : ''}${song.artist} / ${song.title}: ${hit ? hit.snippet.title : 'なし'}`,
+    );
     await writeFile(STATE_FILE, `${JSON.stringify(state, null, 2)}\n`);
   }
 
