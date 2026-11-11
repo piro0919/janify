@@ -6,7 +6,7 @@
 
 ## ✨ Features
 
-- 💿 Browse 45 artists, 558 albums and 817 singles by artist, by album or by decade, with each artist's YouTube channel icon
+- 💿 Browse 45 artists, 564 albums and 833 singles by artist, by album or by decade, with each artist's YouTube channel icon
 - ▶️ Play a whole album in order, with shuffle and repeat; the play button starts from a random track and continues in order
 - 📋 An up-next list you can jump around in, and a sleep timer (15 min to 1 hour, or end of the song)
 - ⏯️ Reopen the site within 12 hours and the last song is back where you left it (can be turned off in settings)
