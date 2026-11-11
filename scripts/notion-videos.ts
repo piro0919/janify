@@ -30,20 +30,36 @@ async function main() {
   const artists: Artist[] = JSON.parse(await readFile('data/raw/artists.json', 'utf8'));
   const albums: Album[] = JSON.parse(await readFile('data/raw/albums.json', 'utf8'));
 
+  // 手で動画を外した行。空の行は埋め直すので、ここに挙げた行は埋めない（理由は CLAUDE.md の「非公式の動画の検索」）
+  const skip = new Set<string>(JSON.parse(await readFile('scripts/video-skip.json', 'utf8')));
+
+  // Notion にすでに入っている動画（行の id → 動画の id）。入っている行は手で直したものかもしれないので上書きしない
+  const filled = new Map(
+    (await queryAll(ids.tracks))
+      .filter((p) => p.properties.YouTube?.url)
+      .map((p) => [p.id, p.properties.YouTube.url.match(/v=([\w-]{11})/)?.[1] ?? ''] as const),
+  );
+
   const wanted = new Map<string, { videoId: string; kind: keyof typeof LABEL }>();
   for (const album of albums) {
     const page = artists.find((a) => a.name === album.artist)!.page;
     const keyOf = (i: number) => `track:album:${page}:${album.page}:${i}`;
     // 非公式の検索は「僕色に染めて～GOING DOWN」のような1本の動画を別の曲にも返すことがある。
-    // 同じアルバムですでに使っている動画は、非公式では当てない
-    const used = new Set(album.tracks.map((_, i) => official[keyOf(i)]?.videoId).filter(Boolean));
+    // 同じアルバムで、Notion にすでに入っているか公式で当てる動画は、非公式では当てない
+    const used = new Set(
+      album.tracks
+        .flatMap((_, i) => [filled.get(progress[keyOf(i)]), official[keyOf(i)]?.videoId])
+        .filter(Boolean),
+    );
     album.tracks.forEach((track, i) => {
-      const o = official[keyOf(i)];
+      const key = keyOf(i);
+      if (skip.has(key) || filled.has(progress[key])) return;
+      const o = official[key];
       const u = unofficial.songs[songKey(album.artist, track)];
-      if (o) wanted.set(keyOf(i), o);
+      if (o) wanted.set(key, o);
       else if (u && !used.has(u.videoId)) {
         used.add(u.videoId);
-        wanted.set(keyOf(i), { videoId: u.videoId, kind: 'unofficial' });
+        wanted.set(key, { videoId: u.videoId, kind: 'unofficial' });
       }
     });
   }
@@ -52,10 +68,7 @@ async function main() {
     properties: { 動画: { select: { options: Object.values(LABEL).map((name) => ({ name })) } } },
   });
 
-  const filled = new Set(
-    (await queryAll(ids.tracks)).filter((p) => p.properties.YouTube?.url).map((p) => p.id),
-  );
-  const targets = [...wanted].filter(([key]) => progress[key] && !filled.has(progress[key]));
+  const targets = [...wanted].filter(([key]) => progress[key]);
 
   let done = 0;
   for (let i = 0; i < targets.length; i += 30) {
