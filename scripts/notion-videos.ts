@@ -33,12 +33,18 @@ async function main() {
   const wanted = new Map<string, { videoId: string; kind: keyof typeof LABEL }>();
   for (const album of albums) {
     const page = artists.find((a) => a.name === album.artist)!.page;
+    const keyOf = (i: number) => `track:album:${page}:${album.page}:${i}`;
+    // 非公式の検索は「僕色に染めて～GOING DOWN」のような1本の動画を別の曲にも返すことがある。
+    // 同じアルバムですでに使っている動画は、非公式では当てない
+    const used = new Set(album.tracks.map((_, i) => official[keyOf(i)]?.videoId).filter(Boolean));
     album.tracks.forEach((track, i) => {
-      const key = `track:album:${page}:${album.page}:${i}`;
-      const o = official[key];
+      const o = official[keyOf(i)];
       const u = unofficial.songs[songKey(album.artist, track)];
-      if (o) wanted.set(key, o);
-      else if (u) wanted.set(key, { videoId: u.videoId, kind: 'unofficial' });
+      if (o) wanted.set(keyOf(i), o);
+      else if (u && !used.has(u.videoId)) {
+        used.add(u.videoId);
+        wanted.set(keyOf(i), { videoId: u.videoId, kind: 'unofficial' });
+      }
     });
   }
 
