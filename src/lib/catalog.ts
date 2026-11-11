@@ -16,8 +16,18 @@ export type Album = {
   kind: 'album' | 'single';
   tracks: Track[];
 };
-/** icon は YouTube のチャンネルのアイコン。公式のチャンネルが無いアーティストは null */
-export type Artist = { id: string; name: string; icon: string | null; albums: Album[] };
+/**
+ * icon は YouTube のチャンネルのアイコン。公式のチャンネルが無いアーティストは null。
+ * tenure はジャニーズ（後継の STARTO ENTERTAINMENT を含む）に所属していた年の範囲。to が null ならいまも所属。
+ * 空の配列は、所属していた間に作品が無いもの（退所後に結成したグループなど）。null は調べていないもの
+ */
+export type Artist = {
+  id: string;
+  name: string;
+  icon: string | null;
+  tenure: { from: number; to: number | null }[] | null;
+  albums: Album[];
+};
 
 /** 再生の順番待ちに積む1曲。どのアルバムの曲かを持ち、プレイヤーの帯に出す */
 export type QueueItem = {
@@ -103,12 +113,17 @@ const NO_VOCAL = /instrumental|inst\.|karaoke|カラオケ|off ?vocal|backing tr
  * アーティストの曲を、同じ曲は1つにまとめて、入っているアルバムの数の多い順に。
  * シングル曲はベスト盤やライブ盤に何度も入るので、この数が多いほど代表曲と見なせる。
  * 同じ曲が何枚にも入っているときは、(Live) などの注記の無い版を先に、そのうえで
- * MV → 公式の音源 → 非公式の順に動画を選ぶ。歌の入っていない版は入れない
+ * MV → 公式の音源 → 非公式の順に動画を選ぶ。歌の入っていない版は入れない。
+ * counts を渡すと、count はそれに合うアルバムだけで数える（total はすべてのアルバムの数で、同じ count のときの順に使う）
  */
-export function songsOf(artist: Artist): { count: number; song: QueueItem }[] {
-  const songs = new Map<string, { count: number; song: QueueItem; rank: number }>();
+export function songsOf(
+  artist: Artist,
+  counts: (album: Album) => boolean = () => true,
+): { count: number; total: number; song: QueueItem }[] {
+  const songs = new Map<string, { count: number; total: number; song: QueueItem; rank: number }>();
   for (const album of artist.albums) {
     const seen = new Set<string>();
+    const add = counts(album) ? 1 : 0;
     for (const { title, videoId, kind } of album.tracks) {
       if (!videoId || !kind || NO_VOCAL.test(title)) continue;
       const key = songKey(artist.name, title);
@@ -125,27 +140,44 @@ export function songsOf(artist: Artist): { count: number; song: QueueItem }[] {
       };
       const found = songs.get(key);
       if (!found) {
-        songs.set(key, { count: 1, song, rank });
+        songs.set(key, { count: add, total: 1, song, rank });
       } else {
-        found.count++;
+        found.count += add;
+        found.total++;
         if (rank < found.rank) Object.assign(found, { song, rank });
       }
     }
   }
-  return [...songs.values()].toSorted((a, b) => b.count - a.count);
+  return [...songs.values()].toSorted(byCount);
+}
+
+const byCount = (a: { count: number; total: number }, b: { count: number; total: number }) =>
+  b.count - a.count || b.total - a.total;
+
+/**
+ * ジャニーズに所属していた間に出たアルバムか。所属期間が分からないアーティスト（tenure が null）はすべて数える。
+ * 発売年の分からないアルバムは数えない
+ */
+export function inTenure(artist: Artist, album: Album): boolean {
+  if (!artist.tenure) return true;
+  const { year } = album;
+  if (year === null) return false;
+  return artist.tenure.some((p) => p.from <= year && year <= (p.to ?? Infinity));
 }
 
 /**
  * 人気曲。そのまま数で並べるとベスト盤の多いアーティストだけで埋まるので、アーティストごとの
- * 1曲目を数の多い順に並べ、足りなければ2曲目、3曲目と順に足す
+ * 1曲目を数の多い順に並べ、足りなければ2曲目、3曲目と順に足す。
+ * 数えるのはジャニーズに所属していた間に出たアルバムとシングルだけ。退所後の作品が多い
+ * アーティスト（郷ひろみなど）が先頭に来ないようにする（2026-11-11、本人の判断）
  */
 export function popularSongs(limit: number): QueueItem[] {
-  const perArtist = artists.map(songsOf);
+  const perArtist = artists.map((a) => songsOf(a, (album) => inTenure(a, album)));
   const result: QueueItem[] = [];
   for (let round = 0; result.length < limit; round++) {
     const picks = perArtist.flatMap((songs) => (songs[round] ? [songs[round]] : []));
     if (picks.length === 0) break;
-    result.push(...picks.toSorted((a, b) => b.count - a.count).map((s) => s.song));
+    result.push(...picks.toSorted(byCount).map((s) => s.song));
   }
   return result.slice(0, limit);
 }

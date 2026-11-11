@@ -3,6 +3,7 @@
 // 掲載の外れた行と、再生できる曲が1曲も無いアルバム・アーティストは書き出さない
 import { readFile, writeFile } from 'node:fs/promises';
 import { queryAll } from './lib/notion';
+import { parseTenure } from './lib/tenure';
 
 type Row = { id: string; properties: Record<string, any> };
 
@@ -18,7 +19,6 @@ function videoId(url: string | null | undefined): string | null {
 }
 
 const KIND: Record<string, string> = { MV: 'mv', 音源: 'audio', 非公式: 'unofficial' };
-
 async function main() {
   const ids = JSON.parse(await readFile('scripts/notion-ids.json', 'utf8'));
   const [artistRows, albumRows, trackRows] = (await Promise.all([
@@ -50,6 +50,7 @@ async function main() {
       name: text(artist.properties['名前']),
       // チャンネルのアイコン（`pnpm youtube:icons` が入れる）。公式のチャンネルが無いアーティストは空
       icon: artist.properties['アイコン']?.url ?? null,
+      tenure: parseTenure(text(artist.properties['ジャニーズ在籍'])),
       albums: (albumsByArtist.get(artist.id) ?? [])
         .map((album) => ({
           id: shortId(album.id),
