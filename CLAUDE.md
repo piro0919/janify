@@ -12,7 +12,7 @@
 - `src/data/catalog.json` は Notion から書き出した版（2026-11-12）。アーティスト45組・アルバム564枚・シングル833枚・再生できる曲9889曲
   - 内訳: Topic の公式音源 6641・公式の MV 322・非公式の動画 2926
   - 非公式の動画が入って、男闘呼組が初めて載った
-- 非公式の動画の検索は、1回目（2026-11-10）も、ライブなどの映像も取る2回目（2026-11-12）も全曲を終えた（後述）。Owler のジョブは残っていて、毎日17時半に検索する曲が無いまま空で回る
+- 非公式の動画の検索は、1回目（2026-11-10）も、ライブなどの映像も取る2回目（2026-11-12）も全曲を終えた（後述）。毎日回していた Owler のジョブは 2026-11-12 に外した
 - 2026-10-07 に公開した。GitHub は piro0919/janify の main、Vercel につないで janify.kkweb.io で配信している
   - Vercel に環境変数は無い。`.env.local` のトークンは `scripts/` だけが使う
   - kkweb.io は別の Vercel アカウントに紐づいていて、サブドメインを足すたびに `_vercel` の TXT が要る。Cloudflare の DNS は `.env.local` の `CLOUDFLARE_API_TOKEN`（kkweb.io の DNS 編集のみ）で API から足せる
@@ -180,9 +180,9 @@ Notion の「曲」の「動画」列は MV・音源・非公式の3つ。「You
   - 2回目の途中、YouTube が 500 backendError を返して止まった。`scripts/lib/youtube.ts` は 5xx を3回までやり直す
 - 非公式の検索は、1本の動画を別の曲にも返すことがある（THE GOOD-BYE の「GOING DOWN」に「僕色に染めて～GOING DOWN」の動画）。`notion:videos` は、同じアルバムで Notion にすでに入っているか公式で当てる動画を、非公式では当てない
 - Notion で手で動画を外した行: THE GOOD-BYE「GOING DOWN」（上の理由）、フォーリーブス『スーパー・プレゼント』の「YO-YO」（「YO YO~DANCE TO THE MUSIC」の動画が「DANCE TO THE MUSIC」と重なった）、V6『Musicmind』の「ユメニアイニ」（公式の照合が「ユメニアイニ (V6 ver.)」の音源を当てていて、同じアルバムの「ユメニアイニ"V6 ver."」と重なった）。公式の照合は上の決まりで止まらないので、ユメニアイニは `scripts/video-skip.json` に挙げて埋め直さないようにしてある
-- Owler のジョブ `janify-unofficial` が、毎日17時半に `scripts/daily-unofficial.sh` を呼ぶ。記録は `data/raw/unofficial.log` に足され、回ごとの記録は Owler の窓で見られる
+- Owler のジョブ `janify-unofficial` が、毎日17時半に `scripts/daily-unofficial.sh` を呼んでいた。検索が終わったので 2026-11-12 に外した。`pnpm wiki:albums` で曲を足したら、`pnpm youtube:unofficial` を手で流す
+  - 回し直すなら、Owler に `scripts/daily-unofficial.sh` を毎日17時半で登録する。記録は `data/raw/unofficial.log` に足される
   - 検索の枠は太平洋時間の0時（日本時間の16〜17時）に戻る
-  - 止めるとき: `~/Repository/owler/Owler.app/Contents/MacOS/Owler remove janify-unofficial`
 - アルバム単位の検索（1回で1枚分）は試したが、アルバムの紹介動画ばかり返って当たらなかった。非公式の動画は個人のチャンネルにばらばらに上がっていて、チャンネルを丸ごと取る方式も使えない
 
 ## 落とし穴
